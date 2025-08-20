@@ -1,3 +1,3 @@
 cd keyboard
-py keyboard_monitor_test.py
+py main.py
 PAUSE

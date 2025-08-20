@@ -1,10 +1,12 @@
-from utils.KeyboardHeatmapController import KeyboardHeatmapController
 import os
-from datetime import datetime
+from utils.KeyboardHeatmapController import KeyboardHeatmapController
 
-controller = KeyboardHeatmapController(True)
+
+print('\x1b[3;37;44m' + "".center(30) + '\x1b[0m')
+print('\x1b[3;37;44m' + "Keyboard Heatmap".center(30) + '\x1b[0m')
+print('\x1b[3;37;44m' + "".center(30) + '\x1b[0m')
+
+controller = KeyboardHeatmapController(os.path.join(os.path.dirname(__file__), "saves"), False)
 data = controller.start_listening()
-with open(os.path.join(os.path.dirname(__file__), "saves", ((str) (datetime.strftime(datetime.now(),"%d-%m-%Y_%H-%M-%S")) + ".hmp")), "w+") as file:
-    file.write(data)
 
 # print(data)

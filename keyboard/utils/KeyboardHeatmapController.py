@@ -1,8 +1,11 @@
 from pynput.keyboard import Key, Listener, KeyCode
 from utils.KeyStats import KeyStats
-
+import os
+from datetime import datetime
+import time
 class KeyboardHeatmapController:
     version: str = 'v1.0'
+    save_path: str
     debug: bool = False
 
     interrupt_key: Key = Key.end
@@ -10,17 +13,33 @@ class KeyboardHeatmapController:
 
     previous_key_name: str = ''
 
-    def __init__(self, debug_mode: bool = False) -> None:
+    def __init__(self, save_path: str, debug_mode: bool = False) -> None:
         interrupt_name = self.get_key_name(self.interrupt_key)
         self.add_key_to_list(interrupt_name)
         self.debug = debug_mode
+        self.save_path = save_path
 
-    def start_listening(self) -> str:
-        with Listener(on_press=self.on_key_press, on_release=self.on_key_release) as listener: # type: ignore
-            print("Started listening for inputs !")
-            listener.join()
-        
-        return self.get_data_as_string()
+    def save_to_file(self, data):
+        with open(os.path.join(self.save_path, ((str) (datetime.strftime(datetime.now(),"%d-%m-%Y_%H-%M-%S")) + ".hmp")), "w+") as file:
+            file.write(data)
+
+
+    def start_listening(self):
+        try:
+            with Listener(on_press=self.on_key_press, on_release=self.on_key_release) as listener: # type: ignore
+                print("Listening...".center(30))
+                print(f"To quit and save press {self.interrupt_key} 3 times".center(30))
+                while listener.running:
+                    listener.is_alive()
+                    time.sleep(0.006)
+                
+        except KeyboardInterrupt:
+            pass
+
+        finally:
+            print("Saving...".center(30))
+            self.save_to_file(self.get_data_as_string())
+
 
     def on_key_press(self, key: Key | KeyCode):
         key_name = self.get_key_name(key)
