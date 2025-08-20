@@ -43,7 +43,7 @@ class KeyboardHeatmap :
             self.keys_hold_time[key_name] = 0
             self.last_moment_key_pressed[key_name] = time.time()
         
-        print(f"Pressed {key_name}")
+        # print(f"Pressed {key_name}")
 
         self.key_pressed[key_name] = True
 
@@ -75,7 +75,7 @@ class KeyboardHeatmap :
             print(f"Skipped key: {key_name}")
             return
 
-        print(f"released {key_name}")
+        # print(f"released {key_name}")
         self.key_pressed[key_name] = False
 
         current_hold_time = time.time() - self.last_moment_key_pressed[key_name]
