@@ -1,3 +1,4 @@
+import time
 import os
 from utils.KeyboardHeatmapController import KeyboardHeatmapController
 
