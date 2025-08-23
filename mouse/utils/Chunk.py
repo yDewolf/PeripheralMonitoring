@@ -1,0 +1,23 @@
+class TimesPressed:
+    left_mouse: int = 0
+    right_mouse: int = 0
+    middle_mouse: int = 0
+
+
+class Chunk:
+    position: tuple
+
+    times_hovered: int = 0
+
+    idle_time: int = 0
+    max_idle_time: int = 0
+
+    times_pressed: dict
+
+    def __init__(self, pos: tuple) -> None:
+        self.position = pos
+        self.times_pressed = {
+            "left": 0,
+            "right": 0,
+            "middle": 0
+        }
