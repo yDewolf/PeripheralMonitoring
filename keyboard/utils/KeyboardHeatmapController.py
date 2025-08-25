@@ -64,6 +64,9 @@ class KeyboardHeatmapController:
         if self.debug:
             print(f"Released: {key_name}")
         key_stats: KeyStats = self.keys.get(key_name, -1)
+        if key_stats == -1:
+            return
+        
         key_stats.update_on_released()
 
     def get_data_as_string(self) -> str:
