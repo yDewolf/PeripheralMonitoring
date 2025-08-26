@@ -17,3 +17,20 @@ class ChunkController:
     
     def chunkPosToIdx(self, pos: tuple) -> int:
         return pos[0] + (pos[1] * self.grid_size[0])
+
+    def get_data_as_str(self) -> str:
+        stringified: str = "v1"
+        stringified += "\n[CHUNK_DATA]"
+        # Headers
+        stringified += "\nChunkIdx,TimesHovered,IdleTime,MaxIdleTime,TimesPressed"
+
+        for row in self.chunks:
+            for chunk in row:
+                if not chunk.has_data():
+                    continue
+                    
+                chunk_idx = self.chunkPosToIdx(chunk.position)
+                chunk_str = chunk.stringified()
+                stringified += f"\n{chunk_idx},{chunk_str}"
+
+        return stringified

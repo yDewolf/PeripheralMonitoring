@@ -64,5 +64,3 @@ with Listener(
     on_click=on_mouse_click,
 ) as listener:
     listener.join()
-
-pass

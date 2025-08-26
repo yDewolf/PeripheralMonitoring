@@ -1,12 +1,16 @@
 from utils.ChunkController import ChunkController
-from pynput.mouse import Controller, Listener
+from pynput.mouse import Controller, Listener as MouseListener
+from pynput.keyboard import Listener as KeyboardListener
 from utils.Chunk import Chunk
 
 import screeninfo
 import math
 import time
+import os
+from datetime import datetime
 
 class MonitorChunkController(ChunkController):
+    save_path: str
     chunk_size: int = 32
 
     properly_setup: bool = False
@@ -14,11 +18,10 @@ class MonitorChunkController(ChunkController):
     previous_hovered_chunk: Chunk
     chunk_start_idle_time: float
 
-    
-
-    def __init__(self, chunk_size: int) -> None:
+    def __init__(self, chunk_size: int, save_path: str) -> None:
         super().__init__()
         self.chunk_size = chunk_size
+        self.save_path = save_path
 
         total_width: int = 0
         max_height: int = 0
@@ -31,13 +34,19 @@ class MonitorChunkController(ChunkController):
             round(max_height / chunk_size)
         )
 
-    
+    def save_to_file(self, data: str) -> None:
+        with open(os.path.join(self.save_path, ((str) (datetime.strftime(datetime.now(),"%d-%m-%Y_%H-%M-%S")) + ".hmp")), "w+") as file:
+            file.write(data)
+
+
     def start_listening(self):
-        with Listener(
+        with MouseListener(
             on_move=self.on_mouse_move,
             on_click=self.on_mouse_click,
         ) as listener:
             listener.join()
+    
+        self.save_to_file(self.get_data_as_str())
 
     def on_mouse_move(self, x, y):
         chunk: Chunk = self.get_chunk_at_mouse_pos(x, y)
@@ -61,6 +70,9 @@ class MonitorChunkController(ChunkController):
         
         if pressed:
             chunk.times_pressed[button.name] += 1
+        
+        if chunk.position == (0, 0) and button.name == "middle":
+            return False
 
     
     def get_chunk_at_mouse_pos(self, x: int, y: int) -> Chunk:

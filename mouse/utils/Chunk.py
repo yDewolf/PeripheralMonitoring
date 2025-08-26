@@ -21,3 +21,11 @@ class Chunk:
             "right": 0,
             "middle": 0
         }
+    
+    def stringified(self) -> str:
+        times_pressed_str: str = str(self.times_pressed)
+        times_pressed_str.replace(",", ";")
+        return f"{self.times_hovered},{self.idle_time},{self.max_idle_time},{times_pressed_str}"
+
+    def has_data(self) -> bool:
+        return self.times_hovered != 0
