@@ -21,6 +21,7 @@ class KeyboardHeatmapController:
 
     def save_to_file(self, data):
         with open(os.path.join(self.save_path, ((str) (datetime.strftime(datetime.now(),"%d-%m-%Y_%H-%M-%S")) + ".hmp")), "w+") as file:
+            print("Saving...".center(30))
             file.write(data)
 
 
@@ -37,7 +38,6 @@ class KeyboardHeatmapController:
             pass
 
         finally:
-            print("Saving...".center(30))
             self.save_to_file(self.get_data_as_string())
 
 

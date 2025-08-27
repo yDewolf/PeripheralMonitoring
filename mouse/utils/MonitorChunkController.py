@@ -36,17 +36,24 @@ class MonitorChunkController(ChunkController):
 
     def save_to_file(self, data: str) -> None:
         with open(os.path.join(self.save_path, ((str) (datetime.strftime(datetime.now(),"%d-%m-%Y_%H-%M-%S")) + ".hmp")), "w+") as file:
+            print("Saving...".center(30))
             file.write(data)
 
 
     def start_listening(self):
-        with MouseListener(
-            on_move=self.on_mouse_move,
-            on_click=self.on_mouse_click,
-        ) as listener:
-            listener.join()
-    
-        self.save_to_file(self.get_data_as_str())
+        try:
+            with MouseListener(
+                on_move=self.on_mouse_move,
+                on_click=self.on_mouse_click,
+            ) as listener:
+                print("Listening...".center(30))
+                print(f"To quit and save press the middle button on chunk (0, 0)".center(30))
+                listener.join()
+        except KeyboardInterrupt:
+            pass
+            
+        finally:
+            self.save_to_file(self.get_data_as_str())
 
     def on_mouse_move(self, x, y):
         chunk: Chunk = self.get_chunk_at_mouse_pos(x, y)
