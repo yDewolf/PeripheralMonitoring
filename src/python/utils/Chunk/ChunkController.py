@@ -1,4 +1,4 @@
-from utils.ChunkHolder import ChunkHolder
+from utils.Chunk.ChunkHolder import ChunkHolder
 import screeninfo
 import utils.FileUtils as FileUtils
 import time

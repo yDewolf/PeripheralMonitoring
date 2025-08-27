@@ -1,5 +1,4 @@
-from utils.Chunk import Chunk
-from utils.Chunk import Vector2i
+from utils.Chunk.Chunk import Chunk, Vector2i
 
 class ChunkHolder:
     grid_size: Vector2i

@@ -1,7 +1,10 @@
-from utils.ChunkHolder import ChunkHolder
+from utils.Chunk.ChunkHolder import ChunkHolder
 from Listeners.GeneralListener import GeneralListener
+from Controllers.Controller import Controller
 
 holder = ChunkHolder(32, 32)
 
-listener = GeneralListener()
+controller = Controller()
+
+listener = GeneralListener(controller)
 listener.start()
