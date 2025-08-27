@@ -1,3 +1,3 @@
 cd keyboard
-py main.py
+python main.py
 PAUSE

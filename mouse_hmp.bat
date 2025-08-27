@@ -1,3 +1,3 @@
 cd mouse
-py main.py
+python main.py
 PAUSE
