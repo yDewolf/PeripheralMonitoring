@@ -20,7 +20,12 @@ class ChunkController:
 
     def get_data_as_str(self) -> str:
         stringified: str = "v1"
-        stringified += "\n[CHUNK_DATA]"
+        stringified += f"\n{self.get_chunk_data_str()}"
+        
+        return stringified
+    
+    def get_chunk_data_str(self) -> str:
+        stringified = "[CHUNK_DATA]"
         # Headers
         stringified += "\nChunkIdx,TimesHovered,IdleTime,MaxIdleTime,TimesPressed"
 

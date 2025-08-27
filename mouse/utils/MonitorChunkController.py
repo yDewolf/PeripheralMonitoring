@@ -1,10 +1,9 @@
 from utils.ChunkController import ChunkController
-from pynput.mouse import Controller, Listener as MouseListener
-from pynput.keyboard import Listener as KeyboardListener
+from pynput.mouse import Listener as MouseListener
+# from pynput.keyboard import Listener as KeyboardListener
 from utils.Chunk import Chunk
 
 import screeninfo
-import math
 import time
 import os
 from datetime import datetime
@@ -12,6 +11,7 @@ from datetime import datetime
 class MonitorChunkController(ChunkController):
     save_path: str
     chunk_size: int = 32
+    start_listen_time: float
 
     properly_setup: bool = False
 
@@ -39,6 +39,13 @@ class MonitorChunkController(ChunkController):
             print("Saving...".center(30))
             file.write(data)
 
+    def get_data_as_str(self) -> str:
+        stringified: str = "v1"
+        stringified += f"\nRuntimeInMs: {int(round((time.time() - self.start_listen_time) * 1000))}"
+        
+        stringified += f"\n{self.get_chunk_data_str()}"
+        
+        return stringified
 
     def start_listening(self):
         try:
@@ -46,9 +53,11 @@ class MonitorChunkController(ChunkController):
                 on_move=self.on_mouse_move,
                 on_click=self.on_mouse_click,
             ) as listener:
+                self.start_listen_time = time.time()
                 print("Listening...".center(30))
                 print(f"To quit and save press the middle button on chunk (0, 0)".center(30))
                 listener.join()
+        
         except KeyboardInterrupt:
             pass
             
@@ -84,8 +93,9 @@ class MonitorChunkController(ChunkController):
     
     def get_chunk_at_mouse_pos(self, x: int, y: int) -> Chunk:
         chunk_pos: tuple = (
-            math.floor(x / self.chunk_size),
-            math.floor(y / self.chunk_size)
+            min(max(x // self.chunk_size, 0), self.grid_size[0] - 1),
+            min(max(y // self.chunk_size, 0), self.grid_size[1] - 1)
         )
+        # print(chunk_pos)
 
         return self.chunks[chunk_pos[0]][chunk_pos[1]]
