@@ -17,5 +17,8 @@ for chunk_row in controller.chunks:
     for chunk in chunk_row:
         chunk_hovers[chunk.position[1]][chunk.position[0]] = chunk.times_hovered
 
-img = pyplot.imshow(chunk_hovers, cmap="gray")
+normalized = chunk_hovers / numpy.amax(chunk_hovers)
+print(normalized)
+
+img = pyplot.imshow(normalized, cmap="seismic")
 pyplot.show()
