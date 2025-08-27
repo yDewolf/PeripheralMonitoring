@@ -62,7 +62,10 @@ class MonitorChunkController(ChunkController):
             pass
             
         finally:
-            self.save_to_file(self.get_data_as_str())
+            data = self.get_data_as_str()
+            self.save_to_file(data)
+
+            return data
 
     def on_mouse_move(self, x, y):
         chunk: Chunk = self.get_chunk_at_mouse_pos(x, y)
