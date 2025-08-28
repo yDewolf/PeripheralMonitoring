@@ -35,7 +35,7 @@ class PeripheralController(Controller):
         self.mouse_parser = MouseEventParser()
 
     def get_data_str(self) -> str:
-        string_data: str = "v1.6"
+        string_data: str = "v1.7"
         string_data += f"\nRuntimeInMs: {int(round((time.time() - self.start_listen_time) * 1000))}"
 
         string_data += "\n[GeneralKeyData]\n" + self.key_data_manager.get_data_as_str()
@@ -120,9 +120,10 @@ class PeripheralController(Controller):
 
         button_stats: MouseButtonStats = None # type: ignore
         if type(event) is MouseEvents.Click:
-            button_stats = self.key_data_manager.get_key(MouseButtonStats.get_button_name(event.button)) # type: ignore
+            key_name = MouseButtonStats.get_button_name(event.button)
+            button_stats = self.key_data_manager.get_key(key_name) # type: ignore
             if button_stats == None:
-                button_stats = MouseButtonStats(MouseButtonStats.get_button_name(event.button))
+                button_stats = MouseButtonStats(key_name)
                 self.key_data_manager.register_key(button_stats)
 
         self.match_mouse_event_type(event_type, self.current_chunk, button_stats) # type: ignore

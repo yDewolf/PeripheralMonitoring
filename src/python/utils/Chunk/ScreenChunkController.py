@@ -1,3 +1,4 @@
+from Listeners.data.KeyDataManager import KeyDataManager
 from utils.Chunk.Chunk import Vector2i
 from utils.Chunk.ScreenChunk import ScreenChunk
 from utils.Chunk.ChunkHolder import ChunkHolder
@@ -51,20 +52,23 @@ class ScreenChunkController(ChunkHolder):
     def get_chunk_data_str(self) -> str:
         stringified = ""
 
+        header = f"{self.get_header()},{ScreenChunk.get_header()}"
+        stringified += f"ChunkDataHeader: {header}"
+
         chunk_strings: list = []
         for row in self.chunks:
             for chunk in row:
                 if not chunk.has_data():
                     continue
                 
-                header = f"\n{self.get_header()},{ScreenChunk.get_header()}"
                 
                 chunk_idx = self.posToIdx(chunk.position)
-                chunk_data_str = f"\n{header}\n{chunk_idx},{chunk.get_chunk_data()}"
+                chunk_data_str = f"{chunk_idx},{chunk.get_chunk_data()}"
                 
                 other_data = chunk.get_data_str()
                 chunk_strings.append(
-                    [chunk_idx, f"\n[CHUNK_DATA_{chunk_idx}]\n{chunk_data_str}\n{other_data}"]
+                    [chunk_idx, 
+                     f"\n[CHUNK_DATA_{chunk_idx}]\n{chunk_data_str}\n{other_data}"]
                 )
         chunk_strings.sort(key=ScreenChunkController.sort_chunk_strings)
         for str_list in chunk_strings:

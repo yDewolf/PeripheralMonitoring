@@ -6,14 +6,6 @@ class KeyboardKeyStats(BaseKeyStats):
 
     current_streak: int = 0
 
-    is_pressed: bool = False
-
-    # Epoch time
-    last_moment_pressed: float
-
-    # Intervals
-    longest_interval: int = -1
-    smallest_interval: int = -1
 
     # Hold time
     total_hold_time: int = 0
@@ -25,11 +17,8 @@ class KeyboardKeyStats(BaseKeyStats):
         self.last_moment_pressed = time.time()
 
     def to_string(self) -> str:
-        stringified = super().to_string()
+        stringified = super().to_string() + ","
         stringified += f"{self.max_press_streak},"
-
-        stringified += f"{self.longest_interval},"
-        stringified += f"{self.smallest_interval},"
 
         stringified += f"{self.total_hold_time},"
         stringified += f"{self.max_hold_time}"
@@ -42,4 +31,4 @@ class KeyboardKeyStats(BaseKeyStats):
 
     @staticmethod
     def get_header() -> str:
-        return BaseKeyStats.get_header() + "MaxStreak,LongestInterval,SmallestInterval,TotalHoldTime,MaxHoldTime"
+        return BaseKeyStats.get_header() + "MaxStreak,TotalHoldTime,MaxHoldTime"

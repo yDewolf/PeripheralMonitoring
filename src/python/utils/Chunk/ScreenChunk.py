@@ -6,7 +6,10 @@ class ScreenChunk(Chunk):
     times_hovered: int = 0
 
     idle_time: int = 0
+
+    start_idle_time: float = 0
     max_idle_time: int = 0
+
 
     afk_time: int = 0
 
@@ -19,7 +22,7 @@ class ScreenChunk(Chunk):
     
     def get_data_str(self) -> str:
         string_data: str = ""
-        string_data += "[ChunkKeyData]\n" + self.key_manager.get_data_as_str()
+        string_data += "[ChunkKeyData]\n" + self.key_manager.get_data_as_str(with_headers=False)
 
         return string_data
 

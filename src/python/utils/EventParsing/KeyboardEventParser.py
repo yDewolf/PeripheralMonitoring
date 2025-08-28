@@ -35,14 +35,7 @@ class KeyboardEventParser:
             key_stats.last_moment_pressed = time.time()
             return
 
-        interval = int(round((time.time() - key_stats.last_moment_pressed) * 1000))
-        key_stats.last_moment_pressed = time.time()
-        
-        if key_stats.smallest_interval == -1 and key_stats.times_pressed >= 2:
-            key_stats.smallest_interval = interval
-        
-        key_stats.smallest_interval = min(interval, key_stats.smallest_interval)
-        key_stats.longest_interval = max(interval, key_stats.longest_interval)
+        key_stats.update_interval_variables()
 
 
     @staticmethod

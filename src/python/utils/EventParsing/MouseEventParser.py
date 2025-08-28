@@ -1,3 +1,4 @@
+import time
 from Listeners.data.MouseButtonStats import MouseButtonStats
 from utils.Chunk.ScreenChunk import ScreenChunk
 
@@ -7,11 +8,17 @@ class MouseEventParser:
 
     @staticmethod
     def parse_mouse_press(chunk: ScreenChunk, key_stats: MouseButtonStats):
-        pass
+        if key_stats.is_pressed:
+            return
+
+        key_stats.times_pressed += 1
+        key_stats.is_pressed = True
+
+        key_stats.update_interval_variables()
 
     @staticmethod
     def parse_mouse_release(chunk: ScreenChunk, key_stats: MouseButtonStats):
-        pass
+        key_stats.is_pressed = False
     
 
     def parse_mouse_move(self, chunk: ScreenChunk):
@@ -20,7 +27,18 @@ class MouseEventParser:
 
     @staticmethod
     def _parse_mouse_move(chunk: ScreenChunk, last_chunk: ScreenChunk):
+        if last_chunk == None:
+            return
+
         if last_chunk != chunk:
             chunk.times_hovered += 1
-        
-        last_chunk = chunk
+
+            # Set the value to a reasonable value
+            if last_chunk.start_idle_time == 0:
+                last_chunk.start_idle_time = time.time()
+
+            previous_chunk_idle_time = int(round((time.time() - last_chunk.start_idle_time) * 1000))
+            last_chunk.idle_time += previous_chunk_idle_time
+            last_chunk.max_idle_time = max(last_chunk.max_idle_time, previous_chunk_idle_time)
+
+        last_chunk.start_idle_time = time.time()
