@@ -8,7 +8,7 @@ import os
 holder = ChunkHolder(32, 32)
 
 chunk_controller = ScreenChunkController(32)
-controller = PeripheralController(chunk_controller, True)
+controller = PeripheralController(chunk_controller, False)
 
 listener = GeneralListener(controller)
 listener.start()

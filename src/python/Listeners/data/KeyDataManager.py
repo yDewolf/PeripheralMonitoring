@@ -4,9 +4,13 @@ from Listeners.data.KeyboardKeyStats import KeyboardKeyStats
 from Listeners.data.MouseButtonStats import MouseButtonStats
 
 class KeyDataManager:
-    key_index: dict = {}
+    key_index: dict
 
-    key_list: list[BaseKeyStats] = []
+    key_list: list[BaseKeyStats]
+
+    def __init__(self) -> None:
+        self.key_index = {}
+        self.key_list = []
 
     def register_key(self, key_stats: BaseKeyStats) -> int:
         key_idx = len(self.key_list)
@@ -40,7 +44,7 @@ class KeyDataManager:
                 continue
         
         string_data += keyboard_data
-        string_data += "\n\n" + mouse_data
+        string_data += "\n" + mouse_data + "\n"
 
         return string_data
 

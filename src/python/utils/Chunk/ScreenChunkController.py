@@ -30,7 +30,8 @@ class ScreenChunkController(ChunkHolder):
         for x in range(self.grid_size.x):
             row = []
             for y in range(self.grid_size.y):
-                chunk = ScreenChunk(Vector2i(x, y))
+                pos = Vector2i(x, y)
+                chunk = ScreenChunk(pos)
                 row.append(chunk)
             
             self.chunks.append(row)

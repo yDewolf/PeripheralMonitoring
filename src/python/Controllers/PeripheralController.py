@@ -118,9 +118,9 @@ class PeripheralController(Controller):
             print("ERROR: Current chunk is None on Mouse Event")
             return
 
-        button_stats = None
+        button_stats: MouseButtonStats = None # type: ignore
         if type(event) is MouseEvents.Click:
-            button_stats = self.key_data_manager.get_key(MouseButtonStats.get_button_name(event)) # type: ignore
+            button_stats = self.key_data_manager.get_key(MouseButtonStats.get_button_name(event.button)) # type: ignore
             if button_stats == None:
                 button_stats = MouseButtonStats(MouseButtonStats.get_button_name(event.button))
                 self.key_data_manager.register_key(button_stats)
