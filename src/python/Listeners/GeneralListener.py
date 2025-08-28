@@ -50,7 +50,6 @@ class GeneralListener(Listener):
         print(f"Collected data: \n{data}")
 
 
-
     def listen_keyboard(self):
         while self.running:
             if self.paused:

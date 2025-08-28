@@ -46,8 +46,8 @@ class PeripheralController(Controller):
 
 
     def parse_event(self, type: EventTypes, event):
-        if self.debug:
-            print(f"Received Event! | type: {type.name} | event: {event}")
+        # if self.debug:
+        #     print(f"Received Event! | type: {type.name} | event: {event}")
         
         # TODO: Optmize this
         match type:
@@ -86,6 +86,10 @@ class PeripheralController(Controller):
 
         if self.current_chunk != None:
             chunk_key_stats: KeyboardKeyStats = self.current_chunk.key_manager.get_key(key_name) # type: ignore
+            if chunk_key_stats == None:
+                chunk_key_stats = KeyboardKeyStats(key_name) 
+                self.current_chunk.key_manager.register_key(chunk_key_stats)
+
             self.match_keyboard_event_type(type, chunk_key_stats)
 
     def match_keyboard_event_type(self, type: EventTypes, key_stats: KeyboardKeyStats):
@@ -104,7 +108,7 @@ class PeripheralController(Controller):
                 print(f"ERROR: Event Type not handled... | type: {type}")
 
 
-    def parse_mouse_event(self, type: EventTypes, event: MouseEvents.Click):
+    def parse_mouse_event(self, event_type: EventTypes, event: MouseEvents.Click):
         self.current_chunk = self.chunk_controller.getChunkAt(
             min(max(event.x // self.chunk_controller.chunk_size, 0), self.chunk_controller.grid_size.x),
             min(max(event.y // self.chunk_controller.chunk_size, 0), self.chunk_controller.grid_size.y)
@@ -114,12 +118,14 @@ class PeripheralController(Controller):
             print("ERROR: Current chunk is None on Mouse Event")
             return
 
-        button_stats: MouseButtonStats = self.key_data_manager.get_key(MouseButtonStats.get_button_name(event)) # type: ignore
-        if button_stats == None:
-            button_stats = MouseButtonStats(MouseButtonStats.get_button_name(event.button))
-            self.key_data_manager.register_key(button_stats)
+        button_stats = None
+        if type(event) is MouseEvents.Click:
+            button_stats = self.key_data_manager.get_key(MouseButtonStats.get_button_name(event)) # type: ignore
+            if button_stats == None:
+                button_stats = MouseButtonStats(MouseButtonStats.get_button_name(event.button))
+                self.key_data_manager.register_key(button_stats)
 
-        self.match_mouse_event_type(type, self.current_chunk, button_stats)
+        self.match_mouse_event_type(event_type, self.current_chunk, button_stats) # type: ignore
         # general_stats = self.key_data_manager.get_key(button_stats.related_key_name)
 
     def match_mouse_event_type(self, type: EventTypes, chunk: ScreenChunk, button_stats: MouseButtonStats):

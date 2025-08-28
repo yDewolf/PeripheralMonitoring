@@ -3,9 +3,7 @@ from utils.Chunk.ScreenChunk import ScreenChunk
 
 
 class MouseEventParser:
-    last_hovered_chunk: ScreenChunk
-
-    
+    last_hovered_chunk: ScreenChunk | None = None
 
     @staticmethod
     def parse_mouse_press(chunk: ScreenChunk, key_stats: MouseButtonStats):
@@ -17,7 +15,8 @@ class MouseEventParser:
     
 
     def parse_mouse_move(self, chunk: ScreenChunk):
-        MouseEventParser._parse_mouse_move(chunk, self.last_hovered_chunk)
+        MouseEventParser._parse_mouse_move(chunk, self.last_hovered_chunk) # type: ignore
+        self.last_hovered_chunk = chunk
 
     @staticmethod
     def _parse_mouse_move(chunk: ScreenChunk, last_chunk: ScreenChunk):
