@@ -1,7 +1,8 @@
 from Enums.EventTypes import EventTypes
+from Controllers.Controller import Controller
 
 class Listener:
-    controller = None
+    controller: Controller
 
     def __init__(self, controller):
         self.set_controller(controller)

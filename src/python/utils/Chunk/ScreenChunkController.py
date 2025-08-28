@@ -1,9 +1,11 @@
+from utils.Chunk.Chunk import Vector2i
+from utils.Chunk.ScreenChunk import ScreenChunk
 from utils.Chunk.ChunkHolder import ChunkHolder
 import screeninfo
 import utils.FileUtils as FileUtils
 import time
 
-class ChunkController(ChunkHolder):
+class ScreenChunkController(ChunkHolder):
     chunk_size: int = 32
     default_save_path: str = "saves"
     CHUNK_HEADER: str = "ChunkIdx,TimesHovered,IdleTime,MaxIdleTime,TimesPressed"
@@ -21,14 +23,31 @@ class ChunkController(ChunkHolder):
             max_height = max(max_height, monitor.height)
             width += monitor.width
         
-        super().__init__(
+        self.grid_size = Vector2i(
             round(width / self.chunk_size),
             round(height / self.chunk_size)
         )
+
+        self.setup()
     
     def save(self):
         FileUtils.save_to_file(self.get_data_str(), self.default_save_path)
     
+    def setup(self):
+        self.chunks = []
+
+        for x in range(self.grid_size.x):
+            row = []
+            for y in range(self.grid_size.y):
+                chunk = ScreenChunk(Vector2i(x, y))
+                row.append(chunk)
+            
+            self.chunks.append(row)
+
+
+    def getChunkAt(self, x: int, y: int) -> ScreenChunk | None:
+        return super().getChunkAt(x, y) # type: ignore
+
 
     def get_data_str(self) -> str:
         stringified: str = "v1.2"

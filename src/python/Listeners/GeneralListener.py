@@ -36,11 +36,18 @@ class GeneralListener(Listener):
             self.stop()
 
     def stop(self):
+        if self.running == False:
+            return
+        
         self.running = False
-        print("Quitting properly")
-
+        print("Waiting for threads to finish...")
         self.mouse_thread.join()
         self.keyboard_thread.join()
+
+        print("Getting data...")
+        data = self.controller.get_data_str()
+        print(f"Collected data: \n{data}")
+
 
 
     def listen_keyboard(self):
@@ -55,11 +62,11 @@ class GeneralListener(Listener):
                     if event is None:
                         continue
 
-                    event_type: EventTypes
+                    event_type: EventTypes = EventTypes.KEYBOARD_PRESS
 
                     if type(event) is keyboard.Events.Press:
                         event_type = EventTypes.KEYBOARD_PRESS
-                    if type(event) is keyboard.Events.Release:
+                    elif type(event) is keyboard.Events.Release:
                         event_type = EventTypes.KEYBOARD_RELEASE
 
                     self.send_event(event_type, event)
@@ -86,10 +93,10 @@ class GeneralListener(Listener):
                     if event is None:
                         continue
 
-                    event_type: EventTypes
+                    event_type: EventTypes = EventTypes.MOUSE_CLICK
                     if type(event) is mouse.Events.Click:
                         event_type = EventTypes.MOUSE_CLICK
-                    if type(event) is mouse.Events.Move:
+                    elif type(event) is mouse.Events.Move:
                         event_type = EventTypes.MOUSE_MOVE
 
                     self.send_event(event_type, event)
