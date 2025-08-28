@@ -3,6 +3,7 @@ from Enums.EventTypes import EventTypes
 
 class Controller:
     listeners: list = []
+    start_listen_time: float
 
     def add_listener(self, listener):
         if self.listeners.__contains__(listener):

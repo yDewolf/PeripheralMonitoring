@@ -23,11 +23,14 @@ class KeyDataManager:
         return self.key_list[idx]
     
     def get_data_as_str(self) -> str:
-        string_data: str = "[KeyData]"
+        string_data: str = ""
 
-        keyboard_data: str = "\n" + KeyboardKeyStats.get_header()
-        mouse_data: str = "\n" + MouseButtonStats.get_header()
-        for key in self.key_list:
+        keyboard_data: str = "[KeyboardData]\n" + KeyboardKeyStats.get_header()
+        mouse_data: str = "[MouseData]\n" + MouseButtonStats.get_header()
+        
+        sorted_list = sorted(self.key_list, key=KeyDataManager.sort_keys) # type: ignore
+        for key in sorted_list:
+            # print(f"Looking at key {key.related_key_name} with type of: {type(key)}")
             if type(key) is KeyboardKeyStats:
                 keyboard_data += "\n" + key.to_string()
                 continue
@@ -35,5 +38,12 @@ class KeyDataManager:
             if type(key) is MouseButtonStats:
                 mouse_data += "\n" + key.to_string()
                 continue
+        
+        string_data += keyboard_data
+        string_data += "\n\n" + mouse_data
 
         return string_data
+
+    @staticmethod
+    def sort_keys(key_a: BaseKeyStats) -> str:
+        return key_a.related_key_name

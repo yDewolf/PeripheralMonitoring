@@ -5,9 +5,8 @@ from Listeners.GeneralListener import GeneralListener
 
 holder = ChunkHolder(32, 32)
 
-chunk_controller = ScreenChunkController(32, "../../saves")
+chunk_controller = ScreenChunkController(32)
 controller = PeripheralController(chunk_controller, True)
 
 listener = GeneralListener(controller)
 listener.start()
-

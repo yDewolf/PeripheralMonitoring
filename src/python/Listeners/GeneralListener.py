@@ -22,6 +22,7 @@ class GeneralListener(Listener):
 
     def start(self):
         atexit.register(self.stop)
+        self.controller.start_listen_time = time.time()
         
         self.mouse_thread.start()
         self.keyboard_thread.start()
@@ -93,11 +94,13 @@ class GeneralListener(Listener):
                     if event is None:
                         continue
 
-                    event_type: EventTypes = EventTypes.MOUSE_CLICK
+                    event_type: EventTypes = EventTypes.MOUSE_MOVE
                     if type(event) is mouse.Events.Click:
-                        event_type = EventTypes.MOUSE_CLICK
-                    elif type(event) is mouse.Events.Move:
-                        event_type = EventTypes.MOUSE_MOVE
+                        event_type = EventTypes.MOUSE_BUTTON_RELEASE
+                        if event.pressed:
+                            event_type = EventTypes.MOUSE_BUTTON_PRESS
+                    # elif type(event) is mouse.Events.Move:
+                    #     event_type = EventTypes.MOUSE_MOVE
 
                     self.send_event(event_type, event)
                     # print(f"Mouse event: {event}")                    

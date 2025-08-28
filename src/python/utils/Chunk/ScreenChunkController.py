@@ -2,21 +2,15 @@ from utils.Chunk.Chunk import Vector2i
 from utils.Chunk.ScreenChunk import ScreenChunk
 from utils.Chunk.ChunkHolder import ChunkHolder
 import screeninfo
-import utils.FileUtils as FileUtils
-import time
 
 class ScreenChunkController(ChunkHolder):
     chunk_size: int = 32
-    default_save_path: str = "saves"
-    CHUNK_HEADER: str = "ChunkIdx,TimesHovered,IdleTime,MaxIdleTime,TimesPressed"
 
     start_listen_time: float
 
-    def __init__(self, chunk_size: int, save_path: str = ""):
+    def __init__(self, chunk_size: int):
         self.chunk_size = chunk_size
-        self.default_save_path = save_path
         width: int = 0
-        height: int = 0
 
         max_height: int = 0
         for monitor in screeninfo.get_monitors():
@@ -25,13 +19,10 @@ class ScreenChunkController(ChunkHolder):
         
         self.grid_size = Vector2i(
             round(width / self.chunk_size),
-            round(height / self.chunk_size)
+            round(max_height / self.chunk_size)
         )
 
         self.setup()
-    
-    def save(self):
-        FileUtils.save_to_file(self.get_data_str(), self.default_save_path)
     
     def setup(self):
         self.chunks = []
@@ -50,25 +41,30 @@ class ScreenChunkController(ChunkHolder):
 
 
     def get_data_str(self) -> str:
-        stringified: str = "v1.2"
-        stringified += f"\nRuntimeInMs: {int(round((time.time() - self.start_listen_time) * 1000))}"
+        stringified: str = ""
         
         stringified += f"\n{self.get_chunk_data_str()}"
         
         return stringified
     
     def get_chunk_data_str(self) -> str:
-        stringified = "[CHUNK_DATA]"
-        # Headers
-        stringified += f"\n{self.CHUNK_HEADER}"
+        stringified = ""
 
         for row in self.chunks:
             for chunk in row:
                 if not chunk.has_data():
                     continue
                     
+                header = f"\n{self.get_header()},{ScreenChunk.get_header()}"
+                
                 chunk_idx = self.posToIdx(chunk.position)
-                chunk_str = chunk.get_data_str()
-                stringified += f"\n{chunk_idx},{chunk_str}"
+                chunk_data_str = f"\n{header}\n{chunk_idx},{chunk.get_chunk_data()}"
+                
+                other_data = chunk.get_data_str()
+                stringified += f"\n[CHUNK_DATA_{chunk_idx}]\n{chunk_data_str}\n{other_data}"
 
         return stringified
+
+    @staticmethod
+    def get_header() -> str:
+        return "ChunkIdx"

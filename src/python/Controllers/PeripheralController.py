@@ -1,3 +1,4 @@
+import time
 from Controllers.Controller import Controller
 from Enums.EventTypes import EventTypes
 
@@ -5,6 +6,8 @@ from pynput.keyboard import Events as KeyboardEvents
 from pynput.mouse import Events as MouseEvents
 
 from Listeners.data.KeyDataManager import KeyDataManager
+from Listeners.data.MouseButtonStats import MouseButtonStats
+from utils.EventParsing.MouseEventParser import MouseEventParser
 from utils.Chunk.ScreenChunk import ScreenChunk
 from utils.EventParsing.KeyboardEventParser import KeyboardEventParser
 from utils.Chunk.ScreenChunkController import ScreenChunkController
@@ -20,6 +23,7 @@ class PeripheralController(Controller):
 
     # Parsers
     keyboard_parser: KeyboardEventParser
+    mouse_parser: MouseEventParser
 
     def __init__(self, chunk_controller: ScreenChunkController, debug_mode: bool = False) -> None:
         super().__init__()
@@ -28,10 +32,15 @@ class PeripheralController(Controller):
 
         self.key_data_manager = KeyDataManager()
         self.keyboard_parser = KeyboardEventParser()
+        self.mouse_parser = MouseEventParser()
 
     def get_data_str(self) -> str:
         string_data: str = "v1.6"
-        string_data += "\n" + self.key_data_manager.get_data_as_str()
+        string_data += f"\nRuntimeInMs: {int(round((time.time() - self.start_listen_time) * 1000))}"
+
+        string_data += "\n[GeneralKeyData]\n" + self.key_data_manager.get_data_as_str()
+
+        string_data += "\n[AllChunkData]\n" + self.chunk_controller.get_data_str()
 
         return string_data
 
@@ -40,6 +49,7 @@ class PeripheralController(Controller):
         if self.debug:
             print(f"Received Event! | type: {type.name} | event: {event}")
         
+        # TODO: Optmize this
         match type:
             case EventTypes.KEYBOARD_PRESS:
                 self.parse_keyboard_event(type, event)
@@ -49,8 +59,11 @@ class PeripheralController(Controller):
                 self.parse_keyboard_event(type, event)
                 return
 
+            case EventTypes.MOUSE_BUTTON_PRESS:
+                self.parse_mouse_event(type, event)
+                return
 
-            case EventTypes.MOUSE_CLICK:
+            case EventTypes.MOUSE_BUTTON_RELEASE:
                 self.parse_mouse_event(type, event)
                 return
 
@@ -58,13 +71,14 @@ class PeripheralController(Controller):
                 self.parse_mouse_event(type, event)
                 return
 
+
     def parse_keyboard_event(self, type: EventTypes, event: KeyboardEvents.Press):
         if event.key == None:
             return
 
         key_name = KeyboardKeyStats.get_key_name(event.key)
         key_stats: KeyboardKeyStats = self.key_data_manager.get_key(key_name) # type: ignore
-        if key_stats == -1:
+        if key_stats == None:
             key_stats = KeyboardKeyStats(key_name) 
             self.key_data_manager.register_key(key_stats)
 
@@ -74,15 +88,61 @@ class PeripheralController(Controller):
             chunk_key_stats: KeyboardKeyStats = self.current_chunk.key_manager.get_key(key_name) # type: ignore
             self.match_keyboard_event_type(type, chunk_key_stats)
 
-    def parse_mouse_event(self, type: EventTypes, event: MouseEvents.Move):
-        self.current_chunk = self.chunk_controller.getChunkAt(event.x, event.y)
-        if self.current_chunk == None:
-            return
-
     def match_keyboard_event_type(self, type: EventTypes, key_stats: KeyboardKeyStats):
         match type:
             case EventTypes.KEYBOARD_PRESS:
+                if self.debug:
+                    print(f"DEBUG: Parsing {type}")
                 self.keyboard_parser.parse_key_press(key_stats) # type: ignore
             
             case EventTypes.KEYBOARD_RELEASE:
+                if self.debug:
+                    print(f"DEBUG: Parsing {type}")
                 self.keyboard_parser.parse_key_release(key_stats) # type: ignore
+
+            case _:
+                print(f"ERROR: Event Type not handled... | type: {type}")
+
+
+    def parse_mouse_event(self, type: EventTypes, event: MouseEvents.Click):
+        self.current_chunk = self.chunk_controller.getChunkAt(
+            min(max(event.x // self.chunk_controller.chunk_size, 0), self.chunk_controller.grid_size.x),
+            min(max(event.y // self.chunk_controller.chunk_size, 0), self.chunk_controller.grid_size.y)
+        )
+
+        if self.current_chunk == None:
+            print("ERROR: Current chunk is None on Mouse Event")
+            return
+
+        button_stats: MouseButtonStats = self.key_data_manager.get_key(MouseButtonStats.get_button_name(event)) # type: ignore
+        if button_stats == None:
+            button_stats = MouseButtonStats(MouseButtonStats.get_button_name(event.button))
+            self.key_data_manager.register_key(button_stats)
+
+        self.match_mouse_event_type(type, self.current_chunk, button_stats)
+        # general_stats = self.key_data_manager.get_key(button_stats.related_key_name)
+
+    def match_mouse_event_type(self, type: EventTypes, chunk: ScreenChunk, button_stats: MouseButtonStats):
+        match type:
+            case EventTypes.MOUSE_MOVE:
+                if self.debug:
+                    print(f"DEBUG: Parsing {type}")
+                self.mouse_parser.parse_mouse_move(chunk)
+                return
+            
+            case EventTypes.MOUSE_BUTTON_PRESS:
+                if self.debug:
+                    print(f"DEBUG: Parsing {type}")
+
+                self.mouse_parser.parse_mouse_press(chunk, button_stats)
+                return
+
+            case EventTypes.MOUSE_BUTTON_RELEASE:
+                if self.debug:
+                    print(f"DEBUG: Parsing {type}")
+
+                self.mouse_parser.parse_mouse_release(chunk, button_stats)
+                return
+            
+            case _:
+                print(f"ERROR: Event Type not handled... | type: {type}")
