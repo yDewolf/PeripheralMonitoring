@@ -1,13 +1,20 @@
+from datetime import datetime
+import os
+import time
 from Listeners.data.KeyDataManager import KeyDataManager
 from Listeners.data.KeyboardKeyStats import KeyboardKeyStats
 from Listeners.data import MouseButtonStats
+from Controllers.PeripheralController import PeripheralController
+from utils.Chunk.ScreenChunkController import ScreenChunkController
+from utils.Chunk.ScreenChunk import ScreenChunk
 
 FORMAT_VERSION: int = 3
+FILE_EXTENSION: str = ".hmp"
 indexed_headers: dict = {}
 indexed_property_names: dict = {}
 
 
-def _get_data_from_keymanager(key_manager: KeyDataManager, with_headers: bool = True) -> str:
+def _get_key_manager_data(key_manager: KeyDataManager, with_headers: bool = True) -> str:
     string_data: str = ""
     if not key_manager.has_data():
         return string_data
@@ -41,6 +48,57 @@ def _get_data_from_keymanager(key_manager: KeyDataManager, with_headers: bool = 
     string_data += "\n" + mouse_data + "\n"
 
     return string_data
+
+def _get_chunk_controller_data(chunk_controller: ScreenChunkController) -> str:
+    stringified = ""
+
+    header = f"ChunkIdx,{generate_header(ScreenChunk)}"
+    stringified += f"ChunkDataHeader: {header}"
+
+    chunk_strings: list = []
+    for row in chunk_controller.chunks:
+        for chunk in row:
+            if not chunk.has_data():
+                continue
+            
+            
+            chunk_idx = chunk_controller.posToIdx(chunk.position)
+            
+            chunk_data = _get_chunk_data(chunk)
+            chunk_strings.append(
+                [chunk_idx, 
+                f"\n[CHUNK_DATA_{chunk_idx}]\n{chunk_data}"]
+            )
+    chunk_strings.sort(key=ScreenChunkController.sort_chunk_strings)
+    for str_list in chunk_strings:
+        stringified += str_list[1]
+
+    return stringified
+
+def _get_chunk_data(chunk: ScreenChunk) -> str:
+    string_data: str = ""
+    string_data += generate_csv_line(chunk)
+    string_data += f"\n[ChunkKeyData]\n{_get_key_manager_data(chunk.key_manager, False)}"
+
+    return string_data
+
+def _get_peripheral_controller_data(controller: PeripheralController) -> str:
+    string_data: str = ""
+    string_data += f"\nRuntimeInMs: {int(round((time.time() - controller.start_listen_time) * 1000))}"
+    string_data += "\n[GeneralKeyData]\n" + _get_key_manager_data(controller.key_data_manager, True)
+    string_data += "\n[AllChunkData]\n" + _get_chunk_controller_data(controller.chunk_controller)
+
+    return string_data
+
+def get_hmp_file_content(controller: PeripheralController) -> str:
+    file_content: str = f"{FORMAT_VERSION}"
+    file_content += _get_peripheral_controller_data(controller)
+
+    return file_content
+
+def save_hmp_file(file_path: str, controller: PeripheralController):
+    with open(os.path.join(file_path, ((str) (datetime.strftime(datetime.now(),"%d-%m-%Y_%H-%M-%S") + FILE_EXTENSION))), "w+") as file:
+        file.write(get_hmp_file_content(controller))
 
 
 def get_property_names(instance: type) -> list:
