@@ -2,10 +2,10 @@ import time
 
 class BaseKeyStats:
     related_key_name: str
-    is_pressed: bool = False
+    _is_pressed: bool = False
 
     times_pressed: int = 0
-    last_moment_pressed: float = 0
+    _last_moment_pressed: float = 0
 
     # Intervals
     longest_interval: int = -1
@@ -27,9 +27,9 @@ class BaseKeyStats:
     def update_interval_variables(self):
         interval = -1
         if self.times_pressed >= 2:
-            interval = int(round((time.time() - self.last_moment_pressed) * 1000))
+            interval = int(round((time.time() - self._last_moment_pressed) * 1000))
         
-        self.last_moment_pressed = time.time()
+        self._last_moment_pressed = time.time()
         
         if self.smallest_interval == -1 and self.times_pressed >= 2:
             self.smallest_interval = interval

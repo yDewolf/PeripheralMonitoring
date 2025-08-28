@@ -8,17 +8,17 @@ class MouseEventParser:
 
     @staticmethod
     def parse_mouse_press(chunk: ScreenChunk, key_stats: MouseButtonStats):
-        if key_stats.is_pressed:
+        if key_stats._is_pressed:
             return
 
         key_stats.times_pressed += 1
-        key_stats.is_pressed = True
+        key_stats._is_pressed = True
 
         key_stats.update_interval_variables()
 
     @staticmethod
     def parse_mouse_release(chunk: ScreenChunk, key_stats: MouseButtonStats):
-        key_stats.is_pressed = False
+        key_stats._is_pressed = False
     
 
     def parse_mouse_move(self, chunk: ScreenChunk):

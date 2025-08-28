@@ -16,23 +16,23 @@ class KeyboardEventParser:
 
     @staticmethod
     def update_on_pressed(key_stats: KeyboardKeyStats, consecutive: bool):
-        if key_stats.is_pressed:
+        if key_stats._is_pressed:
             return
 
-        key_stats.is_pressed = True
+        key_stats._is_pressed = True
 
         key_stats.times_pressed += 1
 
         if consecutive:
-            key_stats.max_press_streak = max(key_stats.current_streak, key_stats.max_press_streak)
-            key_stats.current_streak += 1
+            key_stats.max_press_streak = max(key_stats._current_streak, key_stats.max_press_streak)
+            key_stats._current_streak += 1
         
         if not consecutive:
-            key_stats.current_streak = 1
+            key_stats._current_streak = 1
 
         # Setup the last moment pressed variable
         if key_stats.times_pressed == 1:
-            key_stats.last_moment_pressed = time.time()
+            key_stats._last_moment_pressed = time.time()
             return
 
         key_stats.update_interval_variables()
@@ -44,9 +44,9 @@ class KeyboardEventParser:
 
     @staticmethod
     def update_on_released(key_stats: KeyboardKeyStats):
-        key_stats.is_pressed = False
+        key_stats._is_pressed = False
 
-        hold_time = int(round((time.time() - key_stats.last_moment_pressed) * 1000))
+        hold_time = int(round((time.time() - key_stats._last_moment_pressed) * 1000))
         
         key_stats.total_hold_time += hold_time
         key_stats.max_hold_time = max(key_stats.max_hold_time, hold_time)
