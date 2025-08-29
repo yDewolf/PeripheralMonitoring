@@ -27,6 +27,7 @@ class GeneralListener(Listener):
         self.mouse_thread.start()
         self.keyboard_thread.start()
 
+        print("Listening...".center(30))
         try:
             while self.running:
                 # Change this to a update rate
