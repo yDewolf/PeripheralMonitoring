@@ -129,14 +129,27 @@ def load_hmp_file(file_path: str) -> PeripheralController:
     with open(file_path, "r") as file:
         file_content = file.readlines()
 
-    chunk_controller: ScreenChunkController = ScreenChunkController()
-    current_chunk: ScreenChunk
+    # chunk_controller: ScreenChunkController = ScreenChunkController()
+    # current_chunk: ScreenChunk
     
-    controller: PeripheralController = PeripheralController(chunk_controller, debug_mode=False)
-    super_section: str = ""
+    # controller: PeripheralController = PeripheralController(chunk_controller, debug_mode=False)
+    section_tree: list[str] = []
+    tabs: list[int] = []
+    
     for line in file_content:
-        if line.startswith("["):
-           pass
+        formatted_line = line.strip("\t")
+        if formatted_line.startswith("["):
+           tab_amount = line.count("\t")
+           if len(tabs) > 0:
+                if tabs[-1] >= tab_amount:
+                    section_tree.pop(-1)
+                    tabs.pop(-1)
+               
+           section_tree.append(line)
+           tabs.append(tab_amount)
+           print(f"Tree: {section_tree}\nTabs: {tabs}")
+           continue
+        
     
 # General Utility functions:
 
