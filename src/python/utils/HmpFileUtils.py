@@ -4,13 +4,16 @@ import time
 import re as regex
 from Listeners.data.KeyDataManager import KeyDataManager
 from Listeners.data.KeyboardKeyStats import KeyboardKeyStats
-from Listeners.data import MouseButtonStats
+from Listeners.data.MouseButtonStats import MouseButtonStats
 from Controllers.PeripheralController import PeripheralController
+from Enums.HMPFileSections import FileSections
+from utils.Chunk.Chunk import Vector2i
 from utils.Chunk.ScreenChunkController import ScreenChunkController
 from utils.Chunk.ScreenChunk import ScreenChunk
 
 FORMAT_VERSION: int = 5
 FILE_EXTENSION: str = ".hmp"
+CHUNK_CONTROLLER_EXTRA_HEADERS: list[str] = ["PosX", "PosY"]
 indexed_headers: dict = {}
 indexed_property_names: dict = {}
 
@@ -46,11 +49,11 @@ def _get_key_manager_data(key_manager: KeyDataManager, with_headers: bool = True
             mouse_data += "\n" + key_csv
             continue
     
-    string_data += "<KeyboardData>\n"
+    string_data += f"{FileSections.KEYBOARD_DATA}\n"
     for line in keyboard_data.splitlines(True):
         string_data += "\t" + line
     
-    string_data += "\n<MouseData>\n"
+    string_data += f"\n{FileSections.MOUSE_DATA}\n"
     for line in mouse_data.splitlines(True):
         string_data += "\t" + line
 
@@ -59,7 +62,7 @@ def _get_key_manager_data(key_manager: KeyDataManager, with_headers: bool = True
 def _get_chunk_controller_data(chunk_controller: ScreenChunkController, ignore_empty_chunks: bool = True) -> str:
     stringified = ""
 
-    header = f"ChunkIdx,{generate_header(ScreenChunk)}"
+    header = f"{",".join(CHUNK_CONTROLLER_EXTRA_HEADERS)},{generate_header(ScreenChunk)}"
     stringified += f"ChunkDataHeader: {header}"
 
     chunk_strings: list = []
@@ -75,7 +78,7 @@ def _get_chunk_controller_data(chunk_controller: ScreenChunkController, ignore_e
             
             chunk_strings.append(
                 [chunk_idx, 
-                f"\n[CHUNK_DATA_{chunk_idx}]\n{chunk_data}"]
+                f"\n[{FileSections.CHUNK_DATA}]\n{chunk_data}"]
             )
     chunk_strings.sort(key=ScreenChunkController.sort_chunk_strings)
     for str_list in chunk_strings:
@@ -85,7 +88,7 @@ def _get_chunk_controller_data(chunk_controller: ScreenChunkController, ignore_e
 
 def _get_chunk_data(chunk: ScreenChunk, chunk_controller: ScreenChunkController) -> str:
     string_data: str = ""
-    string_data += f"{chunk_controller.posToIdx(chunk.position)}," + generate_csv_line(chunk)
+    string_data += f"{chunk.position.x},{chunk.position.y}," + generate_csv_line(chunk)
     
     key_manager_data: str = ""
     for line in _get_key_manager_data(chunk.key_manager, False).splitlines(True):
@@ -101,13 +104,13 @@ def _get_peripheral_controller_data(controller: PeripheralController, ignore_emp
     key_manager_data: str = ""
     for line in _get_key_manager_data(controller.key_data_manager, False).splitlines(True):
         key_manager_data += "\t" + line
-    string_data += f"\n[GeneralKeyData]\n{key_manager_data}"
+    string_data += f"\n{FileSections.GENERAL_KEYBOARD_DATA}\n{key_manager_data}"
     
     chunk_data = ""
     for line in _get_chunk_controller_data(controller.chunk_controller, ignore_empty_chunks).splitlines(True): 
         chunk_data += "\t" + line
     
-    string_data += f"\n[AllChunkData]\n{chunk_data}"
+    string_data += f"\n{FileSections.ALL_CHUNK_DATA}\n{chunk_data}"
 
     return string_data
 
@@ -134,46 +137,65 @@ def load_hmp_file(file_path: str) -> PeripheralController: # type: ignore
     start_time = time.time_ns()
 
     content_str: str = "".join(file_content)
-    # print(content_str)
-    matches = regex.findall('(?:CHUNK_DATA_.*?\\])(.*?\\[)', content_str, regex.S)
+    matches = regex.findall(f"(?:{FileSections.CHUNK_DATA}.*?\\])(.*?\\[)", content_str, regex.S)
     for match in matches:
+        chunk = _parse_chunk_data_section(match)
         print(match)
     
-    # print(search)
-    # chunk_controller: ScreenChunkController = ScreenChunkController()
-    # current_chunk: ScreenChunk
-    
-    # controller: PeripheralController = PeripheralController(chunk_controller, debug_mode=False)
-    section_tree: list[str] = []
-    tabs: list[int] = []
-    
-    
-    # for line in file_content:
-    #     formatted_line = line.strip("\t")
-    #     if formatted_line.startswith("["):
-    #        tab_amount = line.count("\t")
-    #        if len(tabs) > 0:
-    #             new_tabs: list[int] = []
-    #             new_tree: list[str] = []
-
-    #             for idx, tab in enumerate(tabs):
-    #                 if tab >= tab_amount:
-    #                     break
-                    
-    #                 new_tree.append(section_tree[idx])
-    #                 new_tabs.append(tab)
-                
-    #             tabs = new_tabs
-    #             section_tree = new_tree
-
-    #        section_tree.append(line)
-    #        tabs.append(tab_amount)
-    #        print(f"Tree: {section_tree}\nTabs: {tabs}")
-    #        continue
-    
     print(f"Took {(time.time_ns() - start_time) * 10 ** -6}ms to look at all file lines")
-    # return controller
-    
+
+# Section Parsing methods:
+
+def _parse_chunk_data_section(section_str: str) -> ScreenChunk:
+    section_lines = section_str.split("\n")
+
+    chunk_properties_csv: str = section_lines.pop(1).replace("\t", "")
+    key_data_match = regex.search(f"(?:<{FileSections.CHUNK_KEY_DATA}>)(.*)", section_str)
+    key_manager: KeyDataManager
+    if key_data_match != None:
+        key_manager: KeyDataManager = _parse_key_manager_section(key_data_match.group(0))
+    else:
+        key_manager = KeyDataManager()
+        print(f"ERROR: Couldn't read {FileSections.CHUNK_KEY_DATA} Section | chunk_properties: {chunk_properties_csv}")
+
+    new_chunk: ScreenChunk = ScreenChunk(Vector2i(-1, -1))
+    new_chunk.key_manager = key_manager
+    set_obj_properties(new_chunk, chunk_properties_csv)
+    value_dict = get_csv_as_dict(chunk_properties_csv, ",".join(CHUNK_CONTROLLER_EXTRA_HEADERS))
+    chunk_pos = Vector2i(
+        value_dict[CHUNK_CONTROLLER_EXTRA_HEADERS[0]],
+        value_dict[CHUNK_CONTROLLER_EXTRA_HEADERS[1]]
+    )
+    new_chunk.position = chunk_pos
+
+    return new_chunk
+
+def _parse_key_manager_section(section_str: str):
+    pattern = f"(?:<{FileSections.KEYBOARD_DATA}>)(.*)?<"
+    keyboard_match = regex.search(pattern, section_str)
+    keyboard_csv: str = ""
+    if keyboard_match != None:
+        keyboard_csv = keyboard_match.group(0)
+
+    pattern = f"(?:<{FileSections.MOUSE_DATA}>)(.*)?<"
+    mouse_match = regex.search(pattern, section_str)
+    mouse_csv: str = ""
+    if mouse_match != None:
+        mouse_csv = mouse_match.group(0)
+
+    key_manager: KeyDataManager = KeyDataManager()
+    for line in keyboard_csv.splitlines():
+        keyboard_key_stats: KeyboardKeyStats = KeyboardKeyStats("")
+        set_obj_properties(keyboard_key_stats, line)
+        key_manager.register_key(keyboard_key_stats)
+
+    for line in mouse_csv.splitlines():
+        mouse_button_stats: MouseButtonStats = MouseButtonStats("")
+        set_obj_properties(mouse_button_stats, line)
+        key_manager.register_key(mouse_button_stats)
+
+    return key_manager
+
 # General Utility functions:
 
 def get_property_names(instance: type) -> list:
@@ -233,11 +255,47 @@ def generate_csv_line(instance: object) -> str:
     
     return line
 
-def set_obj_properties(obj: object, csv_line: str, header: str = ""):
+def get_csv_as_dict(csv_line: str, header: str) -> dict:
+    values = csv_line.split(",")
+    key_names = header.split(",")
+
+    value_dict: dict = {}
+    for idx, key in enumerate(key_names):
+        value_dict[key] = values[idx]
+    
+    return value_dict
+
+# Returns the value dict used to set the variables
+def set_obj_properties(obj: object, csv_line: str, header: str = "") -> dict:
     if header == "":
         header = generate_header(obj)
         
-    properties = header.split(",")
-    values = csv_line.split(",")
-    for idx, property_name in enumerate(properties):
-        obj.__setattr__(property_name, values[idx])
+    value_dict: dict = get_csv_as_dict(csv_line, header)
+    for key in value_dict.keys():
+        if not hasattr(obj, key):
+            continue
+        
+        value = value_dict[key]
+        if is_valid_int(value):
+            value = int(value)
+        elif is_valid_float(value):
+            value = float(value)
+
+        obj.__setattr__(key, value)
+
+    return value_dict
+
+
+def is_valid_int(string: str) -> bool:
+    try:
+        int(string)
+        return True
+    except ValueError:
+        return False
+
+def is_valid_float(string: str) -> bool:
+    try:
+        int(string)
+        return True
+    except ValueError:
+        return False

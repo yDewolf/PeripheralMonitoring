@@ -14,6 +14,7 @@ print('\x1b[3;37;44m' + "".center(30) + '\x1b[0m')
 print('\x1b[3;37;44m' + "Peripheral Monitor".center(30) + '\x1b[0m')
 print('\x1b[3;37;44m' + "".center(30) + '\x1b[0m')
 
+
 chunk_controller = ScreenChunkController(16)
 controller = PeripheralController(chunk_controller, False)
 
