@@ -99,13 +99,14 @@ class PeripheralController(Controller):
 
 
     def parse_mouse_event(self, event_type: EventTypes, event: MouseEvents.Click):
+        x = min(max(event.x // self.chunk_controller.chunk_size, 0), self.chunk_controller.grid_size.x - 1)
+        y = min(max(event.y // self.chunk_controller.chunk_size, 0), self.chunk_controller.grid_size.y - 1)
         self.current_chunk = self.chunk_controller.getChunkAt(
-            min(max(event.x // self.chunk_controller.chunk_size, 0), self.chunk_controller.grid_size.x),
-            min(max(event.y // self.chunk_controller.chunk_size, 0), self.chunk_controller.grid_size.y)
+            x, y
         )
 
         if self.current_chunk == None:
-            print("ERROR: Current chunk is None on Mouse Event")
+            print(f"ERROR: Current chunk is None on Mouse Event | Pos: ({x}, {y})")
             return
 
         button_stats: MouseButtonStats = None # type: ignore

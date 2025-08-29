@@ -1,3 +1,3 @@
 cd src/python/
-python main.py
+py main.py
 PAUSE
