@@ -1,6 +1,7 @@
 from datetime import datetime
 import os
 import time
+import re as regex
 from Listeners.data.KeyDataManager import KeyDataManager
 from Listeners.data.KeyboardKeyStats import KeyboardKeyStats
 from Listeners.data import MouseButtonStats
@@ -8,7 +9,7 @@ from Controllers.PeripheralController import PeripheralController
 from utils.Chunk.ScreenChunkController import ScreenChunkController
 from utils.Chunk.ScreenChunk import ScreenChunk
 
-FORMAT_VERSION: int = 4
+FORMAT_VERSION: int = 5
 FILE_EXTENSION: str = ".hmp"
 indexed_headers: dict = {}
 indexed_property_names: dict = {}
@@ -45,11 +46,11 @@ def _get_key_manager_data(key_manager: KeyDataManager, with_headers: bool = True
             mouse_data += "\n" + key_csv
             continue
     
-    string_data += "[KeyboardData]\n"
+    string_data += "<KeyboardData>\n"
     for line in keyboard_data.splitlines(True):
         string_data += "\t" + line
     
-    string_data += "\n[MouseData]\n"
+    string_data += "\n<MouseData>\n"
     for line in mouse_data.splitlines(True):
         string_data += "\t" + line
 
@@ -70,7 +71,7 @@ def _get_chunk_controller_data(chunk_controller: ScreenChunkController, ignore_e
             chunk_idx = chunk_controller.posToIdx(chunk.position)
             
             chunk_data = ""
-            for line in _get_chunk_data(chunk, chunk_controller).splitlines(True): chunk_data += "\t" + line
+            for line in _get_chunk_data(chunk, chunk_controller).splitlines(True): chunk_data += "\t" + line # type: ignore
             
             chunk_strings.append(
                 [chunk_idx, 
@@ -89,7 +90,7 @@ def _get_chunk_data(chunk: ScreenChunk, chunk_controller: ScreenChunkController)
     key_manager_data: str = ""
     for line in _get_key_manager_data(chunk.key_manager, False).splitlines(True):
         key_manager_data += "\t" + line
-    string_data += f"\n[ChunkKeyData]\n{key_manager_data}"
+    string_data += f"\n<ChunkKeyData>\n{key_manager_data}"
 
     return string_data
 
@@ -115,6 +116,7 @@ def _get_peripheral_controller_data(controller: PeripheralController, ignore_emp
 def get_hmp_file_content(controller: PeripheralController, ignore_empty_chunks: bool = True) -> str:
     file_content: str = f"{FORMAT_VERSION}\nChunkSize: {controller.chunk_controller.chunk_size}"
     file_content += _get_peripheral_controller_data(controller, ignore_empty_chunks)
+    file_content += "\n[END]"
 
     return file_content
 
@@ -124,11 +126,20 @@ def save_hmp_file(controller: PeripheralController, file_path: str, ignore_empty
         file.write(get_hmp_file_content(controller, ignore_empty_chunks))
         print(f"INFO: Took {(time.time_ns() - start_time) * 10 ** -6}ms to save file")
 
-def load_hmp_file(file_path: str) -> PeripheralController:
+def load_hmp_file(file_path: str) -> PeripheralController: # type: ignore
     file_content: list[str] = []
     with open(file_path, "r") as file:
         file_content = file.readlines()
 
+    start_time = time.time_ns()
+
+    content_str: str = "".join(file_content)
+    # print(content_str)
+    matches = regex.findall('(?:CHUNK_DATA_.*?\\])(.*?\\[)', content_str, regex.S)
+    for match in matches:
+        print(match)
+    
+    # print(search)
     # chunk_controller: ScreenChunkController = ScreenChunkController()
     # current_chunk: ScreenChunk
     
@@ -136,20 +147,32 @@ def load_hmp_file(file_path: str) -> PeripheralController:
     section_tree: list[str] = []
     tabs: list[int] = []
     
-    for line in file_content:
-        formatted_line = line.strip("\t")
-        if formatted_line.startswith("["):
-           tab_amount = line.count("\t")
-           if len(tabs) > 0:
-                if tabs[-1] >= tab_amount:
-                    section_tree.pop(-1)
-                    tabs.pop(-1)
-               
-           section_tree.append(line)
-           tabs.append(tab_amount)
-           print(f"Tree: {section_tree}\nTabs: {tabs}")
-           continue
-        
+    
+    # for line in file_content:
+    #     formatted_line = line.strip("\t")
+    #     if formatted_line.startswith("["):
+    #        tab_amount = line.count("\t")
+    #        if len(tabs) > 0:
+    #             new_tabs: list[int] = []
+    #             new_tree: list[str] = []
+
+    #             for idx, tab in enumerate(tabs):
+    #                 if tab >= tab_amount:
+    #                     break
+                    
+    #                 new_tree.append(section_tree[idx])
+    #                 new_tabs.append(tab)
+                
+    #             tabs = new_tabs
+    #             section_tree = new_tree
+
+    #        section_tree.append(line)
+    #        tabs.append(tab_amount)
+    #        print(f"Tree: {section_tree}\nTabs: {tabs}")
+    #        continue
+    
+    print(f"Took {(time.time_ns() - start_time) * 10 ** -6}ms to look at all file lines")
+    # return controller
     
 # General Utility functions:
 
