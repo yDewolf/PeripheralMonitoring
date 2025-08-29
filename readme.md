@@ -2,8 +2,12 @@
 This project is made for fun and can be potentially dangerous!!
 - This project consists of generating statistics of your peripheral use
 
-**Press ```End``` 3 times consecutively to properly close the program and save your statistics**
-
+# How to Run:
+You can run the ```run.bat``` file or execute the ```main.py``` file from your cmd with something like:
+```
+cd src/python
+python main.py
+```
 ## Dependencies are listed at [Requirements.txt](https://github.com/yDewolf/PeripheralMonitoring/blob/main/requirements.txt)
 
 ## About key logging:
