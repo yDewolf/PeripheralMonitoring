@@ -34,11 +34,11 @@ class MouseEventParser:
             chunk.times_hovered += 1
 
             # Set the value to a reasonable value
-            if last_chunk.start_idle_time == 0:
-                last_chunk.start_idle_time = time.time()
+            if last_chunk._start_idle_time == 0:
+                last_chunk._start_idle_time = time.time()
 
-            previous_chunk_idle_time = int(round((time.time() - last_chunk.start_idle_time) * 1000))
+            previous_chunk_idle_time = int(round((time.time() - last_chunk._start_idle_time) * 1000))
             last_chunk.idle_time += previous_chunk_idle_time
             last_chunk.max_idle_time = max(last_chunk.max_idle_time, previous_chunk_idle_time)
 
-        last_chunk.start_idle_time = time.time()
+        last_chunk._start_idle_time = time.time()

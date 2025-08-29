@@ -14,16 +14,6 @@ class BaseKeyStats:
     def __init__(self, key_name: str) -> None:
         self.related_key_name = key_name
 
-    def to_string(self) -> str:
-        stringified = ""
-        stringified += f"{self.related_key_name},"
-        stringified += f"{self.times_pressed},"
-
-        stringified += f"{self.longest_interval},"
-        stringified += f"{self.smallest_interval}"
-
-        return stringified
-
     def update_interval_variables(self):
         interval = -1
         if self.times_pressed >= 2:
@@ -36,7 +26,3 @@ class BaseKeyStats:
         
         self.smallest_interval = min(interval, self.smallest_interval)
         self.longest_interval = max(interval, self.longest_interval)
-
-    @staticmethod
-    def get_header() -> str:
-        return "KeyName,TimesPressed,LongestInterval,SmallestInterval"

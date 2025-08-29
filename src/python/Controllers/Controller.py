@@ -14,5 +14,3 @@ class Controller:
     def parse_event(self, type: EventTypes, event):
         print(f"Received Event! | type: {type.name} | event: {event}")
     
-    def get_data_str(self) -> str:
-        return ""

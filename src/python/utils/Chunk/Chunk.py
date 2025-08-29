@@ -22,14 +22,6 @@ class Chunk:
     def __init__(self, position: Vector2i):
         self.position = position
 
-
-    def get_chunk_data(self) -> str:
-        return "CSV_CHUNK_DATA"
-
-    ## Override this on other classes
-    def get_data_str(self) -> str:
-        return "OTHER_CHUNK_DATA"
-    
     ## Override this on other classes
     def has_data(self) -> bool:
         return False

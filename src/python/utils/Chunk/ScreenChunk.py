@@ -7,9 +7,8 @@ class ScreenChunk(Chunk):
 
     idle_time: int = 0
 
-    start_idle_time: float = 0
+    _start_idle_time: float = 0
     max_idle_time: int = 0
-
 
     afk_time: int = 0
 
@@ -19,28 +18,6 @@ class ScreenChunk(Chunk):
         super().__init__(position)
 
         self.key_manager = KeyDataManager()
-    
-    def get_data_str(self) -> str:
-        string_data: str = ""
-        string_data += "[ChunkKeyData]\n" + self.key_manager.get_data_as_str(with_headers=False)
-
-        return string_data
-
-    # CSV format
-    def get_chunk_data(self) -> str:
-        string_data: str = ""
-
-        string_data += f"{self.times_hovered},"
-        string_data += f"{self.idle_time},"
-        string_data += f"{self.max_idle_time},"
-        string_data += f"{self.afk_time}"
-
-        return string_data
-
 
     def has_data(self) -> bool:
         return self.times_hovered != 0
-
-    @staticmethod
-    def get_header() -> str:
-        return "TimesHovered,IdleTime,MaxIdleTime,AfkTime"

@@ -45,10 +45,6 @@ class GeneralListener(Listener):
         self.mouse_thread.join()
         self.keyboard_thread.join()
 
-        # print("Getting data...")
-        # data = self.controller.get_data_str()
-        # print(f"Collected data: \n{data}")
-
 
     def listen_keyboard(self):
         while self.running:

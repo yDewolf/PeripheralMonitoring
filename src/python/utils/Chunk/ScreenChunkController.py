@@ -41,41 +41,6 @@ class ScreenChunkController(ChunkHolder):
     def getChunkAt(self, x: int, y: int) -> ScreenChunk | None:
         return super().getChunkAt(x, y) # type: ignore
 
-
-    def get_data_str(self) -> str:
-        stringified: str = ""
-        
-        stringified += self.get_chunk_data_str()
-        
-        return stringified
-    
-    def get_chunk_data_str(self) -> str:
-        stringified = ""
-
-        header = f"{self.get_header()},{ScreenChunk.get_header()}"
-        stringified += f"ChunkDataHeader: {header}"
-
-        chunk_strings: list = []
-        for row in self.chunks:
-            for chunk in row:
-                if not chunk.has_data():
-                    continue
-                
-                
-                chunk_idx = self.posToIdx(chunk.position)
-                chunk_data_str = f"{chunk_idx},{chunk.get_chunk_data()}"
-                
-                other_data = chunk.get_data_str()
-                chunk_strings.append(
-                    [chunk_idx, 
-                     f"\n[CHUNK_DATA_{chunk_idx}]\n{chunk_data_str}\n{other_data}"]
-                )
-        chunk_strings.sort(key=ScreenChunkController.sort_chunk_strings)
-        for str_list in chunk_strings:
-            stringified += str_list[1]
-
-        return stringified
-
     @staticmethod
     def get_header() -> str:
         return "ChunkIdx"

@@ -49,7 +49,7 @@ def _get_key_manager_data(key_manager: KeyDataManager, with_headers: bool = True
 
     return string_data
 
-def _get_chunk_controller_data(chunk_controller: ScreenChunkController) -> str:
+def _get_chunk_controller_data(chunk_controller: ScreenChunkController, ignore_empty_chunks: bool = True) -> str:
     stringified = ""
 
     header = f"ChunkIdx,{generate_header(ScreenChunk)}"
@@ -58,13 +58,12 @@ def _get_chunk_controller_data(chunk_controller: ScreenChunkController) -> str:
     chunk_strings: list = []
     for row in chunk_controller.chunks:
         for chunk in row:
-            if not chunk.has_data():
+            if not chunk.has_data() and ignore_empty_chunks:
                 continue
-            
             
             chunk_idx = chunk_controller.posToIdx(chunk.position)
             
-            chunk_data = _get_chunk_data(chunk)
+            chunk_data = _get_chunk_data(chunk, chunk_controller) # type: ignore
             chunk_strings.append(
                 [chunk_idx, 
                 f"\n[CHUNK_DATA_{chunk_idx}]\n{chunk_data}"]
@@ -75,30 +74,32 @@ def _get_chunk_controller_data(chunk_controller: ScreenChunkController) -> str:
 
     return stringified
 
-def _get_chunk_data(chunk: ScreenChunk) -> str:
+def _get_chunk_data(chunk: ScreenChunk, chunk_controller: ScreenChunkController) -> str:
     string_data: str = ""
-    string_data += generate_csv_line(chunk)
+    string_data += f"{chunk_controller.posToIdx(chunk.position)}" + generate_csv_line(chunk)
     string_data += f"\n[ChunkKeyData]\n{_get_key_manager_data(chunk.key_manager, False)}"
 
     return string_data
 
-def _get_peripheral_controller_data(controller: PeripheralController) -> str:
+def _get_peripheral_controller_data(controller: PeripheralController, ignore_empty_chunks: bool = True) -> str:
     string_data: str = ""
     string_data += f"\nRuntimeInMs: {int(round((time.time() - controller.start_listen_time) * 1000))}"
     string_data += "\n[GeneralKeyData]\n" + _get_key_manager_data(controller.key_data_manager, True)
-    string_data += "\n[AllChunkData]\n" + _get_chunk_controller_data(controller.chunk_controller)
+    string_data += "\n[AllChunkData]\n" + _get_chunk_controller_data(controller.chunk_controller, ignore_empty_chunks)
 
     return string_data
 
-def get_hmp_file_content(controller: PeripheralController) -> str:
+def get_hmp_file_content(controller: PeripheralController, ignore_empty_chunks: bool = True) -> str:
     file_content: str = f"{FORMAT_VERSION}"
-    file_content += _get_peripheral_controller_data(controller)
+    file_content += _get_peripheral_controller_data(controller, ignore_empty_chunks)
 
     return file_content
 
-def save_hmp_file(file_path: str, controller: PeripheralController):
+def save_hmp_file(controller: PeripheralController, file_path: str, ignore_empty_chunks: bool = True):
+    start_time = time.time_ns()
     with open(os.path.join(file_path, ((str) (datetime.strftime(datetime.now(),"%d-%m-%Y_%H-%M-%S") + FILE_EXTENSION))), "w+") as file:
-        file.write(get_hmp_file_content(controller))
+        file.write(get_hmp_file_content(controller, ignore_empty_chunks))
+        print(f"INFO: Took {(time.time_ns() - start_time) * 10 ** -6}ms to save file")
 
 
 def get_property_names(instance: type) -> list:
@@ -131,7 +132,7 @@ def generate_header(instance: type | object) -> str:
     if header != "":
         return header
     
-    keys = get_property_names(instance_type)
+    keys = get_property_names(instance_type) # type: ignore
     for key in keys:
         key_parts = key.split("_")
         key_name: str = ""

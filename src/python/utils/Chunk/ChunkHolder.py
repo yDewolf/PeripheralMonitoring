@@ -30,7 +30,3 @@ class ChunkHolder:
             return None
 
         return self.chunks[x][y]
-
-    ## Override this on other classes
-    def get_data_str(self) -> str:
-        return ""

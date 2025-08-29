@@ -15,19 +15,6 @@ class KeyboardKeyStats(BaseKeyStats):
 
         self._last_moment_pressed = time.time()
 
-    def to_string(self) -> str:
-        stringified = super().to_string() + ","
-        stringified += f"{self.max_press_streak},"
-
-        stringified += f"{self.total_hold_time},"
-        stringified += f"{self.max_hold_time}"
-
-        return stringified
-
     @staticmethod
     def get_key_name(key):
         return str(key).lower()
-
-    @staticmethod
-    def get_header() -> str:
-        return BaseKeyStats.get_header() + "MaxStreak,TotalHoldTime,MaxHoldTime"

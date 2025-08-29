@@ -34,16 +34,6 @@ class PeripheralController(Controller):
         self.keyboard_parser = KeyboardEventParser()
         self.mouse_parser = MouseEventParser()
 
-    def get_data_str(self) -> str:
-        string_data: str = "v1.7"
-        string_data += f"\nRuntimeInMs: {int(round((time.time() - self.start_listen_time) * 1000))}"
-
-        string_data += "\n[GeneralKeyData]\n" + self.key_data_manager.get_data_as_str()
-
-        string_data += "\n[AllChunkData]\n" + self.chunk_controller.get_data_str()
-
-        return string_data
-
 
     def parse_event(self, type: EventTypes, event):
         # if self.debug:
