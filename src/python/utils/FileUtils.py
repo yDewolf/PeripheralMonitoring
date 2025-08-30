@@ -10,8 +10,8 @@ def save_to_file(data: str, file_path: str, extension: str) -> None:
 
 # CSV Utils
 
-def get_property_names(instance: type) -> list:
-    properties: list = indexed_property_names.get(str(instance), [])
+def get_property_names(instance: type) -> list[str]:
+    properties: list[str] = indexed_property_names.get(str(instance), [])
     if properties != []:
         return properties
 
