@@ -2,7 +2,6 @@ import os
 from Controllers.PeripheralController import PeripheralController
 from utils.Chunk.ScreenChunk import ScreenChunk
 from utils.Chunk.ScreenChunkController import ScreenChunkController
-from utils.Chunk.ChunkHolder import ChunkHolder
 from Listeners.GeneralListener import GeneralListener
 
 import utils.HmpFileUtils as HMPUtils

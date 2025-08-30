@@ -1,7 +1,7 @@
 import time
 
 class BaseKeyStats:
-    related_key_name: str
+    related_key_name: str = ""
     _is_pressed: bool = False
 
     times_pressed: int = 0
