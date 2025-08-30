@@ -31,7 +31,7 @@
                 return;
             }
             fetch_chunk_data()
-        }, 250); // Executes every 1 second
+        }, 100); // Executes every 1 second
 
 
         function start_listening() {
@@ -75,7 +75,7 @@
                 }
             }).then(
                 response => {
-                    console.log(response)
+                    // console.log(response)
                     return response.json()
                 }
             ).then(data => {
@@ -94,20 +94,59 @@
 
             Canvas.setAttribute("width", body.grid_size[0] * pixel_size);
             Canvas.setAttribute("height", body.grid_size[1] * pixel_size);
-            context.clearRect(0, 0, Canvas.width, Canvas.height);
+            
+            let gradient = [
+                [2, 2, 30],
+                [173, 24, 42],
+                [255, 255, 255]
+            ];
+            context.fillStyle = 'rgba('+gradient[0][0] + ',' + gradient[0][1] + ',' + gradient[0][2] +','+ 1 + ')';
+            context.fillRect(0, 0, Canvas.width, Canvas.height);
 
-            chunk_data = body.chunk_data.chunks
+            let chunk_data = body.chunk_data.chunks;
+
             for (const row_key in chunk_data) {
                 for (let idx = 0; idx < chunk_data[row_key].length; idx++) {
                     // console.log("Painting " + row_key + " " + idx)
-                    value = chunk_data[row_key][idx];
+                    let value = chunk_data[row_key][idx];
                     if (value == 0) {
                         continue;
                     }
-                    color = 'rgba(0, 0, 255, ' + value + ')'
+                    let color_rgb = interpolate_between_gradient(gradient, value);
+                    let color = 'rgba('+color_rgb[0] + ',' + color_rgb[1] + ',' + color_rgb[2] +','+ 1 + ')';
                     drawDot(context, idx, row_key, color, pixel_size);
                 }
             }
+        }
+
+        function interpolate_between_gradient(gradient, delta) {
+            let = total_delta = delta * gradient.length
+            let = rgb = gradient[0]
+            for (let idx = 0; idx < gradient.length; idx++) {
+                if (idx == gradient.length - 1) {
+                    continue;
+                }
+
+                local_delta = (total_delta / (idx + 1))
+                if (local_delta <= 0 || local_delta > gradient.length / (idx + 1)) {
+                    continue;
+                }
+
+                rgb = rgb_interpolate(
+                    rgb[0], rgb[1], rgb[2], 
+                    gradient[idx + 1][0], gradient[idx + 1][1], gradient[idx + 1][2],
+                    local_delta
+                )
+            }
+            return rgb
+        }
+
+        function rgb_interpolate(r, g, b, r1, g1, b1, delta) {
+            new_r = r + (r1 - r) * delta;
+            new_g = g + (g1 - g) * delta;
+            new_b = b + (b1 - b) * delta;
+
+            return [new_r, new_g, new_b]
         }
 
         function drawDot(context, x, y, color, size = 1) {
