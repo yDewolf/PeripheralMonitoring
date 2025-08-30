@@ -9,7 +9,7 @@ class ScreenChunkController(ChunkHolder):
 
     start_listen_time: float
 
-    def __init__(self, chunk_size: int):
+    def __init__(self, chunk_size: int, chunk_index: dict[str, ScreenChunk] = {}):
         self.chunk_size = chunk_size
         width: int = 0
 
@@ -23,16 +23,20 @@ class ScreenChunkController(ChunkHolder):
             round(max_height / self.chunk_size)
         )
 
-        self.setup()
+        self.setup(chunk_index)
     
-    def setup(self):
+    def setup(self, chunk_index: dict[str, ScreenChunk] = {}):
         self.chunks = []
 
         for x in range(self.grid_size.x):
             row = []
             for y in range(self.grid_size.y):
                 pos = Vector2i(x, y)
-                chunk = ScreenChunk(pos)
+                chunk: ScreenChunk | None = chunk_index.get(str(pos), None)
+                if chunk != None:
+                    pass
+                if chunk == None: chunk = ScreenChunk(pos)
+
                 row.append(chunk)
             
             self.chunks.append(row)

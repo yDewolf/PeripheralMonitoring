@@ -8,3 +8,8 @@ class FileSections(Enum):
     ALL_CHUNK_DATA = "<AllChunkData>"
     CHUNK_DATA = "CHUNK_DATA_"
     CHUNK_KEY_DATA = "<ChunkKeyData>"
+
+class FileVariables(Enum):
+    CHUNK_SIZE = "ChunkSize"
+    RUNTIME_MS = "RuntimeInMs"
+    CHUNK_DATA_HEADER = "ChunkDataHeader"

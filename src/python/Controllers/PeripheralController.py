@@ -25,12 +25,15 @@ class PeripheralController(Controller):
     keyboard_parser: KeyboardEventParser
     mouse_parser: MouseEventParser
 
-    def __init__(self, chunk_controller: ScreenChunkController, debug_mode: bool = False) -> None:
+    def __init__(self, chunk_controller: ScreenChunkController, key_data_manager: KeyDataManager | None = None, debug_mode: bool = False) -> None:
         super().__init__()
         self.debug = debug_mode
         self.chunk_controller = chunk_controller
 
-        self.key_data_manager = KeyDataManager()
+        if key_data_manager == None:
+            key_data_manager = KeyDataManager()
+            
+        self.key_data_manager = key_data_manager
         self.keyboard_parser = KeyboardEventParser()
         self.mouse_parser = MouseEventParser()
 
