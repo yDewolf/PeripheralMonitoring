@@ -9,21 +9,33 @@ from Controllers.Controller import Controller
 
 class GeneralListener(Listener):
     paused: bool = False
-    running: bool = True
+    running: bool = False
+    generate_new_threads: bool = True
 
     mouse_thread: threading.Thread
     keyboard_thread: threading.Thread
 
     def __init__(self, controller: Controller):
         super().__init__(controller)
-
+        atexit.register(self.stop)
+        self.setup_threads()
+        
+    def setup_threads(self):
         self.mouse_thread = threading.Thread(target=self.listen_mouse, daemon=True)
         self.keyboard_thread = threading.Thread(target=self.listen_keyboard, daemon=True)
+        self.generate_new_threads = False
 
     def start(self):
-        atexit.register(self.stop)
+        if self.running:
+            print("WARNING: Listener is already running and will not try to start again")
+            return
+        
         self.controller.start_listen_time = time.time()
         
+        if self.generate_new_threads:
+            self.setup_threads()
+        
+        self.running = True
         self.mouse_thread.start()
         self.keyboard_thread.start()
 
@@ -45,6 +57,7 @@ class GeneralListener(Listener):
         print("Waiting for threads to finish...")
         self.mouse_thread.join()
         self.keyboard_thread.join()
+        self.generate_new_threads = True
 
 
     def listen_keyboard(self):
