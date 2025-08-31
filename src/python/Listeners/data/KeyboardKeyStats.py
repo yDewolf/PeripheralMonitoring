@@ -8,6 +8,10 @@ class KeyboardKeyStats(BaseKeyStats):
 
     # Hold time
     total_hold_time: int = 0
+    
+    average_hold_time: int = 0
+    
+    min_hold_time: int = 0
     max_hold_time: int = 0
 
     def __init__(self, key_name: str) -> None:

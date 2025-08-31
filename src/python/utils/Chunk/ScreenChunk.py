@@ -3,6 +3,8 @@ from utils.Chunk.Chunk import Vector2i
 from utils.Chunk.Chunk import Chunk
 
 class ScreenChunk(Chunk):
+    # In milliseconds
+    _IDLE_TO_AFK_THRESHOLD: int = 5000
     times_hovered: int = 0
 
     idle_time: int = 0
@@ -11,6 +13,7 @@ class ScreenChunk(Chunk):
     max_idle_time: int = 0
 
     afk_time: int = 0
+    max_afk_time: int = 0
 
     key_manager: KeyDataManager
 

@@ -1,6 +1,7 @@
 from datetime import datetime
 import os
 import time
+from Listeners.data.BaseKeyStats import BaseKeyStats
 import utils.FileUtils as FileUtils
 import re as regex
 from Listeners.data.KeyDataManager import KeyDataManager
@@ -26,12 +27,20 @@ def _get_key_manager_data(key_manager: KeyDataManager, with_headers: bool = True
     keyboard_data: str = ""
     mouse_data: str = ""
     if with_headers:
+        
         keyboard_data += FileUtils.generate_header(KeyboardKeyStats)
         mouse_data += FileUtils.generate_header(MouseButtonStats)
     
     sorted_list = sorted(key_manager.key_list, key=KeyDataManager.sort_keys) # type: ignore
+    most_pressed: BaseKeyStats | None = None
     for key in sorted_list:
         key_csv = FileUtils.generate_csv_line(key)
+        if most_pressed == None:
+            most_pressed = key
+
+        if key.times_pressed > most_pressed.times_pressed:
+            most_pressed = key
+
         if type(key) is KeyboardKeyStats:
             if keyboard_data == "":
                 keyboard_data += key_csv
@@ -48,6 +57,9 @@ def _get_key_manager_data(key_manager: KeyDataManager, with_headers: bool = True
             mouse_data += "\n" + key_csv
             continue
     
+    if with_headers and most_pressed != None:
+        string_data += f"{get_variable_string(FileVariables.MOST_PRESSED_KEY.value, most_pressed.related_key_name)}\n"
+    
     string_data += f"{FileSections.KEYBOARD_DATA.value}\n"
     for line in keyboard_data.splitlines(True):
         string_data += "\t" + line
@@ -62,7 +74,7 @@ def _get_chunk_controller_data(chunk_controller: ScreenChunkController, ignore_e
     stringified = ""
 
     header = f"{",".join(CHUNK_CONTROLLER_EXTRA_HEADERS)},{FileUtils.generate_header(ScreenChunk)}"
-    stringified += f"{FileVariables.CHUNK_DATA_HEADER.value}: {header};"
+    stringified += get_variable_string(FileVariables.CHUNK_DATA_HEADER.value, header)
 
     chunk_strings: list = []
     for row in chunk_controller.chunks:
@@ -100,7 +112,7 @@ def _get_chunk_data(chunk: ScreenChunk, chunk_controller: ScreenChunkController)
 
 def _get_peripheral_controller_data(controller: PeripheralController, ignore_empty_chunks: bool = True) -> str:
     string_data: str = ""
-    string_data += f"\n{FileVariables.RUNTIME_MS.value}: {int(round((time.time() - controller.start_listen_time) * 1000))}"
+    string_data += f"\n{get_variable_string(FileVariables.RUNTIME_MS.value,int(round((time.time() - controller.start_listen_time) * 1000)))}"
     
     key_manager_data: str = ""
     for line in _get_key_manager_data(controller.key_data_manager, True).splitlines(True):
@@ -119,7 +131,10 @@ def _get_peripheral_controller_data(controller: PeripheralController, ignore_emp
 # Final methods
 
 def get_hmp_file_content(controller: PeripheralController, ignore_empty_chunks: bool = True) -> str:
-    file_content: str = f"{FORMAT_VERSION}\n{FileVariables.CHUNK_SIZE.value}: {controller.chunk_controller.chunk_size};"
+    file_content: str = f"{FORMAT_VERSION}"
+    file_content += "\n" + get_variable_string(FileVariables.CHUNK_SIZE.value, controller.chunk_controller.chunk_size)
+    file_content += "\n" + get_variable_string(FileVariables.TAGS.value, ",".join(controller.tags))
+    
     file_content += _get_peripheral_controller_data(controller, ignore_empty_chunks)
     file_content += "\n[END]"
 
@@ -161,7 +176,11 @@ def load_hmp_file(file_path: str) -> PeripheralController: # type: ignore
 
     key_manager = _parse_key_manager_section(key_data_section)
     chunk_controller: ScreenChunkController = ScreenChunkController(variables.get(FileVariables.CHUNK_SIZE.value, -1), chunk_index)
-    peripheral_controller = PeripheralController(chunk_controller, key_manager)
+    peripheral_controller = PeripheralController(
+        chunk_controller, 
+        key_manager,
+        tags=variables.get(FileVariables.TAGS.value, [])
+    )
 
     print(f"Took {(time.time_ns() - start_time) * 10 ** -6}ms to parse file")
     
@@ -232,3 +251,6 @@ def _parse_key_manager_section(section_str: str):
     return key_manager
 
 # General Utility functions:
+
+def get_variable_string(variable_name: str, value) -> str:
+    return f"{variable_name}: {value};"

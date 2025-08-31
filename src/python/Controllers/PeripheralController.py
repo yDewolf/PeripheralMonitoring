@@ -17,6 +17,9 @@ from Listeners.data.KeyboardKeyStats import KeyboardKeyStats
 class PeripheralController(Controller):
     debug: bool = False
 
+    # Metadata
+    tags: list[str] = []
+
     chunk_controller: ScreenChunkController
     current_chunk: ScreenChunk | None
     key_data_manager: KeyDataManager
@@ -25,9 +28,10 @@ class PeripheralController(Controller):
     keyboard_parser: KeyboardEventParser
     mouse_parser: MouseEventParser
 
-    def __init__(self, chunk_controller: ScreenChunkController, key_data_manager: KeyDataManager | None = None, debug_mode: bool = False) -> None:
+    def __init__(self, chunk_controller: ScreenChunkController, key_data_manager: KeyDataManager | None = None, debug_mode: bool = False, tags: list[str] = []) -> None:
         super().__init__()
         self.debug = debug_mode
+        self.tags = tags
         self.chunk_controller = chunk_controller
 
         if key_data_manager == None:

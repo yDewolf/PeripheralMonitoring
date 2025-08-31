@@ -47,6 +47,11 @@ class KeyboardEventParser:
         key_stats._is_pressed = False
 
         hold_time = int(round((time.time() - key_stats._last_moment_pressed) * 1000))
-        
+        if key_stats.min_hold_time == 0:
+            key_stats.min_hold_time = hold_time
+
         key_stats.total_hold_time += hold_time
+        
+        key_stats.average_hold_time = int(key_stats.total_hold_time / key_stats.times_pressed)
         key_stats.max_hold_time = max(key_stats.max_hold_time, hold_time)
+        key_stats.min_hold_time = min(key_stats.min_hold_time, hold_time)

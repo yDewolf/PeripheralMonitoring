@@ -11,5 +11,7 @@ class FileSections(Enum):
 
 class FileVariables(Enum):
     CHUNK_SIZE = "ChunkSize"
+    TAGS = "Tags"
+    MOST_PRESSED_KEY = "MostPressedKey"
     RUNTIME_MS = "RuntimeInMs"
     CHUNK_DATA_HEADER = "ChunkDataHeader"
