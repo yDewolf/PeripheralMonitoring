@@ -26,6 +26,13 @@
         StopListenButton.onclick=stop_listening;
 
         const Canvas = document.getElementById("StatisticCanva");
+        const SEISMIC_GRADIENT = [
+            [0, 0, 85],
+            [0, 0, 255],
+            [255, 255, 255],
+            [255, 7, 7],
+            [170, 0, 0],
+        ];
         const intervalId = setInterval(() => {
             if (!FetchCheckbox.checked) {
                 return;
@@ -90,16 +97,12 @@
         
         function parse_chunk_data(body) {
             context = Canvas.getContext("2d");
-            pixel_size = 4
+            pixel_size = 6
+            let gradient = SEISMIC_GRADIENT
 
             Canvas.setAttribute("width", body.grid_size[0] * pixel_size);
             Canvas.setAttribute("height", body.grid_size[1] * pixel_size);
             
-            let gradient = [
-                [2, 2, 30],
-                [173, 24, 42],
-                [255, 255, 255]
-            ];
             context.fillStyle = 'rgba('+gradient[0][0] + ',' + gradient[0][1] + ',' + gradient[0][2] +','+ 1 + ')';
             context.fillRect(0, 0, Canvas.width, Canvas.height);
 
@@ -120,24 +123,18 @@
         }
 
         function interpolate_between_gradient(gradient, delta) {
-            let = total_delta = delta * gradient.length
-            let = rgb = gradient[0]
-            for (let idx = 0; idx < gradient.length; idx++) {
-                if (idx == gradient.length - 1) {
-                    continue;
-                }
-
-                local_delta = (total_delta / (idx + 1))
-                if (local_delta <= 0 || local_delta > gradient.length / (idx + 1)) {
-                    continue;
-                }
-
+            let total_delta = delta * gradient.length;
+            let start_idx = Math.max(Math.floor((gradient.length * delta) - 1), 0)
+            let rgb = gradient[start_idx];
+            for (let idx = start_idx; idx < gradient.length; idx++) {
                 rgb = rgb_interpolate(
-                    rgb[0], rgb[1], rgb[2], 
-                    gradient[idx + 1][0], gradient[idx + 1][1], gradient[idx + 1][2],
-                    local_delta
+                    rgb[0], rgb[1], rgb[2],
+                    gradient[idx][0], gradient[idx][1], gradient[idx][2],
+                    total_delta
                 )
+                total_delta = Math.max(total_delta - idx, 0)
             }
+
             return rgb
         }
 
