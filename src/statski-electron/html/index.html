@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statski</title>
+    <link rel="stylesheet" href="../style/main.css">
+    <link rel="stylesheet" href="../style/components.css">
+</head>
+<body>
+    <div class="content">
+        <div class="left-panel">
+            <ul class="left-panel-options">
+                <li class="left-panel-option"><a href="?">Some Option</a></li>
+                <li class="left-panel-option"><a href="?">Some Option</a></li>
+            </ul>
+            <hr style="background-color: var(--color-clear-white); border-radius: var(--default-border-radius);">
+            <button class="settings-button">Settings</button>
+        </div>
+        <div class="main-content">
+            <div class="navbar">
+                <ul class="navbar-items">
+                    <li class="nav-item"><a href="?tab=mouse">Mouse</a></li>
+                    <li class="nav-item"><a href="?tab=keyboard">Keyboard</a></li>
+                </ul>
+                <div class="navbar-right">
+                    Profile
+                </div>
+            </div>
+            <div class="statistic-preview"></div>
+            <hr>
+            <div class="control-panel">
+                <ul class="control-buttons">
+                    <li><button class="control-button" id="StopListening">Stop Listening</button></li>
+                    <li><button class="control-button" id="StartListening">Start Listening</button></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
