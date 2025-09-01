@@ -10,5 +10,34 @@
     --color-darker-gray: #18191D;
 
     --default-border-radius: 8px;
+    --titlebar-height: 30px;
 }
 
+@media (prefers-color-scheme: light) {
+  * {
+    --color-main: #E6B63A;
+    --color-main-dark: #F5FCFF;
+    --color-clear-white: #06041B;
+    --color-clear-black: #F5FCFF;
+    --color-ok-green: #92FF93;
+    --color-nono-red: #DA4B4B;
+    --color-gray: #e4ebfd;
+    --color-dark-gray: #cfd5e6;
+    --color-darker-gray: #bdc6df;
+  }
+}
+
+* {
+    font-family: "PixelFont";
+}
+
+.titlebar {
+    font-family: "PixelFont";
+    height: var(--titlebar-height);
+    padding: 0 5px;
+    background: var(--color-main-dark);
+    color: var(--color-main);
+    display: flex;
+    align-items: center;
+    app-region: drag;
+}

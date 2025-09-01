@@ -3,7 +3,13 @@ const { app, BrowserWindow } = require('electron/main')
 const createWindow = () => {
   const win = new BrowserWindow({
     width: 1024,
-    height: 768
+    height: 768,
+    titleBarStyle: 'hidden',
+    titleBarOverlay: {
+      color: '#06041B',
+      symbolColor: '#F5FCFF',
+      height: 30
+    }
   });
 
   win.loadFile('html/index.html');
