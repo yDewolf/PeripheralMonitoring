@@ -18,7 +18,7 @@ class FlaskAPI(flask.Flask):
         # self.add_url_rule("/setup", view_func=self.setup_controller)
         self.add_url_rule("/listen", view_func=self.listen)
         self.add_url_rule("/stop-listening", view_func=self.stop_listening)
-        self.add_url_rule("/get-data", view_func=self.get_data)
+        self.add_url_rule("/get-data/<property>", view_func=self.get_data)
         self.setup_controller()
 
     def index(self):
@@ -40,11 +40,11 @@ class FlaskAPI(flask.Flask):
 
         return response
 
-    def get_data(self):
+    def get_data(self, property: str = "times_hovered"):
         data = {
             "message": "Fetching data", 
             "body": {
-                "chunk_data": HmpPlotUtils.chunk_data_to_dict(self.controller),
+                "chunk_data": HmpPlotUtils.chunk_data_to_dict(self.controller, property),
                 "grid_size": [self.controller.chunk_controller.grid_size.x, self.controller.chunk_controller.grid_size.y], 
                 "chunk_size": self.controller.chunk_controller.chunk_size, 
             }

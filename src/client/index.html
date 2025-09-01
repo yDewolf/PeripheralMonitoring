@@ -17,11 +17,15 @@
     
     <label for="FetchChunkData">Keep updating</label>
     <input type="checkbox" name="" id="FetchChunkData">
+    <input type="text" name="" id="ChunkProperty" value="times_hovered">
     <!-- <button id="FetchChunkData">Fetch data</button> -->
     <script>
+        let chunk_property = "times_hovered"
+        
         const ListenButton = document.getElementById("StartListening");
         const StopListenButton = document.getElementById("StopListening");
         const FetchCheckbox = document.getElementById("FetchChunkData");
+        const ChunkPropertyInput = document.getElementById("ChunkProperty");
         ListenButton.onclick=start_listening;
         StopListenButton.onclick=stop_listening;
 
@@ -75,7 +79,7 @@
         }
 
         function fetch_chunk_data() {
-            fetch("http://127.0.0.1:5000/get-data", {
+            fetch("http://127.0.0.1:5000/get-data/" + chunk_property, {
                 method: 'GET',
                 headers: {
 
@@ -96,6 +100,7 @@
 
         
         function parse_chunk_data(body) {
+            chunk_property = ChunkPropertyInput.value
             context = Canvas.getContext("2d");
             pixel_size = 6
             let gradient = SEISMIC_GRADIENT

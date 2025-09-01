@@ -27,6 +27,11 @@ def chunk_data_to_dict(controller: PeripheralController, property: str = "times_
         "property": property,
         "chunks": []
     }
+    
+    try:
+        controller.chunk_controller.chunks[0][0].__getattribute__(property)
+    except AttributeError:
+        return chunk_data
 
     chunks = numpy.zeros((
         controller.chunk_controller.grid_size.y,
