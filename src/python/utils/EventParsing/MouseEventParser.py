@@ -39,11 +39,11 @@ class MouseEventParser:
 
             previous_chunk_idle_time = int(round((time.time() - last_chunk._start_idle_time) * 1000))
             if previous_chunk_idle_time > last_chunk._IDLE_TO_AFK_THRESHOLD:
-                print(f"Adding afk time | Time spent afk: {previous_chunk_idle_time}")
+                # print(f"Adding afk time | Time spent afk: {previous_chunk_idle_time}")
                 last_chunk.afk_time += previous_chunk_idle_time
                 last_chunk.max_afk_time = max(last_chunk.max_afk_time, previous_chunk_idle_time)
             else:
-                print(f"Adding idle time | Time spent idle: {previous_chunk_idle_time}")
+                # print(f"Adding idle time | Time spent idle: {previous_chunk_idle_time}")
                 last_chunk.idle_time += previous_chunk_idle_time
                 last_chunk.max_idle_time = max(last_chunk.max_idle_time, previous_chunk_idle_time)
 

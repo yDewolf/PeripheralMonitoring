@@ -99,17 +99,17 @@
         }
 
         
-        function parse_chunk_data(body) {
+        function parse_chunk_data(body, canvas) {
             chunk_property = ChunkPropertyInput.value
-            context = Canvas.getContext("2d");
+            context = canvas.getContext("2d");
             pixel_size = 6
             let gradient = SEISMIC_GRADIENT
 
-            Canvas.setAttribute("width", body.grid_size[0] * pixel_size);
-            Canvas.setAttribute("height", body.grid_size[1] * pixel_size);
+            canvas.setAttribute("width", body.grid_size[0] * pixel_size);
+            canvas.setAttribute("height", body.grid_size[1] * pixel_size);
             
             context.fillStyle = 'rgba('+gradient[0][0] + ',' + gradient[0][1] + ',' + gradient[0][2] +','+ 1 + ')';
-            context.fillRect(0, 0, Canvas.width, Canvas.height);
+            context.fillRect(0, 0, canvas.width, canvas.height);
 
             let chunk_data = body.chunk_data.chunks;
 

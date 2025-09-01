@@ -73,7 +73,7 @@ body {
 }
 
 .statistic-preview {
-    height: 100%;
+    margin: auto;
 }
 
 .control-panel {
@@ -90,6 +90,15 @@ body {
     background-color: var(--color-clear-white);
     
     padding: 10px;
+}
+
+.cancel {
+    background-color: var(--color-nono-red);
+    color: var(--color-clear-white);
+}
+
+.confirm {
+    background-color: var(--color-ok-green);
 }
 
 button:hover {
@@ -124,7 +133,7 @@ hr {
 a {
     text-align: center;
     text-decoration: none;
-    
+
     background-color: var(--color-gray);
     border-radius: var(--default-border-radius);
     color: var(--color-clear-white);
