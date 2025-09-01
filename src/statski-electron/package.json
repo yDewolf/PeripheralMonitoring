@@ -1,0 +1,15 @@
+{
+  "name": "statski-electron",
+  "version": "0.1.0",
+  "description": "A program to track your daily basis peripheral statistics",
+  "main": "index.ts",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "yDewolf",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^37.4.0"
+  }
+}
