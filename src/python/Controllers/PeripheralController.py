@@ -116,15 +116,23 @@ class PeripheralController(Controller):
             print(f"ERROR: Current chunk is None on Mouse Event | Pos: ({x}, {y})")
             return
 
-        button_stats: MouseButtonStats = None # type: ignore
+        button_stats: MouseButtonStats | None = None 
+        chunk_button_stats: MouseButtonStats | None = None
         if type(event) is MouseEvents.Click:
             key_name = MouseButtonStats.get_button_name(event.button)
             button_stats = self.key_data_manager.get_key(key_name) # type: ignore
             if button_stats == None:
                 button_stats = MouseButtonStats(key_name)
                 self.key_data_manager.register_key(button_stats)
+            
+            chunk_button_stats = self.current_chunk.key_manager.get_key(key_name) # type: ignore
+            if chunk_button_stats == None:
+                chunk_button_stats = MouseButtonStats(key_name)
+                self.current_chunk.key_manager.register_key(chunk_button_stats)
 
         self.match_mouse_event_type(event_type, self.current_chunk, button_stats) # type: ignore
+        self.match_mouse_event_type(event_type, self.current_chunk, chunk_button_stats) # type: ignore
+        
         # general_stats = self.key_data_manager.get_key(button_stats.related_key_name)
 
     def match_mouse_event_type(self, type: EventTypes, chunk: ScreenChunk, button_stats: MouseButtonStats):

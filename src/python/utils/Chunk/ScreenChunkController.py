@@ -33,8 +33,6 @@ class ScreenChunkController(ChunkHolder):
             for y in range(self.grid_size.y):
                 pos = Vector2i(x, y)
                 chunk: ScreenChunk | None = chunk_index.get(str(pos), None)
-                if chunk != None:
-                    pass
                 if chunk == None: chunk = ScreenChunk(pos)
 
                 row.append(chunk)
@@ -44,10 +42,6 @@ class ScreenChunkController(ChunkHolder):
 
     def getChunkAt(self, x: int, y: int) -> ScreenChunk | None:
         return super().getChunkAt(x, y) # type: ignore
-
-    @staticmethod
-    def get_header() -> str:
-        return "ChunkIdx"
 
     @staticmethod
     def sort_chunk_strings(string_list: list) -> int:

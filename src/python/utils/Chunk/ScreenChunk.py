@@ -23,4 +23,5 @@ class ScreenChunk(Chunk):
         self.key_manager = KeyDataManager()
 
     def has_data(self) -> bool:
+        # TODO: Fix this
         return self.times_hovered != 0
