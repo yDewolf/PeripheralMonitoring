@@ -16,30 +16,45 @@ print('\x1b[3;37;44m' + "".center(30) + '\x1b[0m')
 
 
 chunk_controller = ScreenChunkController(16)
-controller = PeripheralController(chunk_controller, debug_mode=False)
+controller: PeripheralController = PeripheralController(chunk_controller, debug_mode=False)
 
 listener = GeneralListener(controller)
-listener.start()
+# listener.start()
 
 def statistics_menu():
     keep_on_menu: bool = True
     while keep_on_menu:
-        valid_properties: list[str] = FileUtils.get_property_names(ScreenChunk)
-        property_idx: int = ConsoleInputHandler.selectFromOptions(
-            "Select one of the options below: ", valid_properties + ["Quit"]
-        )
+        data_type: int = ConsoleInputHandler.selectFromOptions("What type of data are you looking for?", ["Mouse Data", "Key Data"] + ["Quit"])
 
-        if property_idx == 0:
-            break
-        
-        property_name = valid_properties[property_idx - 1]
-        img = HmpPlotUtils.create_chunk_property_img(controller, property_name)
+        match data_type:
+            case 0:
+                break
+
+            case 1:
+                valid_properties: list[str] = FileUtils.get_property_names(ScreenChunk)
+                property_idx: int = ConsoleInputHandler.selectFromOptions(
+                    "Select one of the options below: ", valid_properties
+                )
+
+                property_name = valid_properties[property_idx - 1]
+                img = HmpPlotUtils.create_chunk_property_img(controller, property_name)
+
+            case 2:
+                selected_key_name: str = input("Type the key name you want to analyze\n>> ")
+                img = HmpPlotUtils.create_chunk_key_data_img(controller, selected_key_name)
+
+
         HmpPlotUtils.pyplot.show()
+
+def load_menu():
+    file_path: str = input("Please input a file path\n>> ")
+
+    return HMPUtils.load_hmp_file(file_path)
 
 looping: bool = True
 saved_file: bool = False
 while looping:
-    opt = ConsoleInputHandler.selectFromOptions("Menu", ["Save HMP File", "See statistics", "Quit"])
+    opt = ConsoleInputHandler.selectFromOptions("Menu", ["Save HMP File", "See statistics", "Start Listener", "Load HMP file", "Quit"])
     match opt:
         case 0:
             if not saved_file:
@@ -55,3 +70,10 @@ while looping:
 
         case 2:
             statistics_menu()
+        
+        case 3:
+            listener.start()
+            saved_file = False
+
+        case 4:
+            controller = load_menu()

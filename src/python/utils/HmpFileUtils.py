@@ -51,7 +51,7 @@ def _get_key_manager_data(key_manager: KeyDataManager, with_headers: bool = True
         
         if type(key) is MouseButtonStats:
             if mouse_data == "":
-                keyboard_data += key_csv
+                mouse_data += key_csv
                 continue
             
             mouse_data += "\n" + key_csv
@@ -169,7 +169,7 @@ def load_hmp_file(file_path: str) -> PeripheralController: # type: ignore
 
     chunk_index, loaded_chunks = _parse_all_chunk_data(chunk_data_section, variables)
 
-    key_data_match = regex.search(f"{FileSections.GENERAL_KEYBOARD_DATA.value}(.*)", content_str, regex.S)
+    key_data_match = regex.search(f"{FileSections.GENERAL_KEYBOARD_DATA.value}(.*)?(?:{FileSections.ALL_CHUNK_DATA.value})", content_str, regex.S)
     key_data_section: str = ""
     if key_data_match != None:
         key_data_section = key_data_match.group()
@@ -204,12 +204,13 @@ def _parse_chunk_data_section(section_str: str, chunk_data_header: str) -> Scree
     section_lines = section_str.split("\n")
 
     chunk_properties_csv: str = section_lines.pop(1).replace("\t", "")
-    key_data_match = regex.search(f"(?:<{FileSections.CHUNK_KEY_DATA.value}>)(.*)", section_str)
-    key_manager: KeyDataManager
+    key_data_match = regex.search(f"(?:{FileSections.CHUNK_KEY_DATA.value})(.*)", section_str, regex.S)
+    key_manager: KeyDataManager = KeyDataManager() 
+
+    # Fix this
     if key_data_match != None:
-        key_manager: KeyDataManager = _parse_key_manager_section(key_data_match.group(0))
-    else:
-        key_manager = KeyDataManager()
+        if key_data_match.group(1) != "":
+            key_manager: KeyDataManager = _parse_key_manager_section(key_data_match.group(1))
         # print(f"ERROR: Couldn't read {FileSections.CHUNK_KEY_DATA.value} Section | chunk_properties: {chunk_properties_csv}")
 
     new_chunk: ScreenChunk = ScreenChunk(Vector2i(-1, -1))
@@ -225,27 +226,45 @@ def _parse_chunk_data_section(section_str: str, chunk_data_header: str) -> Scree
     return new_chunk
 
 def _parse_key_manager_section(section_str: str):
-    pattern = f"(?:<{FileSections.KEYBOARD_DATA.value}>)(.*)?<"
-    keyboard_match = regex.search(pattern, section_str)
+    pattern = f"(?:{FileSections.KEYBOARD_DATA.value})(.*)?(?:{FileSections.MOUSE_DATA.value})"
+    keyboard_match = regex.search(pattern, section_str, regex.S)
     keyboard_csv: str = ""
     if keyboard_match != None:
-        keyboard_csv = keyboard_match.group(0)
+        keyboard_csv = keyboard_match.group(1)
 
-    pattern = f"(?:<{FileSections.MOUSE_DATA.value}>)(.*)?<"
-    mouse_match = regex.search(pattern, section_str)
+    pattern = f"(?:{FileSections.MOUSE_DATA.value})(.*)?<"
+    mouse_match = regex.search(pattern, section_str, regex.S)
     mouse_csv: str = ""
     if mouse_match != None:
-        mouse_csv = mouse_match.group(0)
+        mouse_csv = mouse_match.group(1)
 
     key_manager: KeyDataManager = KeyDataManager()
-    for line in keyboard_csv.splitlines():
+    for idx, line in enumerate(keyboard_csv.splitlines()):
+        # Skip the header
+        if idx == 1:
+            continue
+
+        line = FileUtils.clean_string(line)
+        if line == "":
+            continue
+
         keyboard_key_stats: KeyboardKeyStats = KeyboardKeyStats("")
         FileUtils.set_obj_properties(keyboard_key_stats, line)
+
         key_manager.register_key(keyboard_key_stats)
 
-    for line in mouse_csv.splitlines():
+    for idx, line in enumerate(mouse_csv.splitlines()):
+        # Skip the header
+        if idx == 1:
+            continue
+
+        line = FileUtils.clean_string(line)
+        if line == "":
+            continue
+        
         mouse_button_stats: MouseButtonStats = MouseButtonStats("")
         FileUtils.set_obj_properties(mouse_button_stats, line)
+
         key_manager.register_key(mouse_button_stats)
 
     return key_manager
