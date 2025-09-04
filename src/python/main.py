@@ -8,18 +8,25 @@ from utils.Chunk.ScreenChunkController import ScreenChunkController
 from Listeners.GeneralListener import GeneralListener
 
 import utils.HmpFileUtils as HMPUtils
+import utils.CfgUtils as CfgUtils
 
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), "./config.cfg")
+config_data = CfgUtils.load_configs(CONFIG_PATH)
+
+SAVE_PATH: str = str(config_data["SavePath"])
+if bool(config_data["RelativePath"]):
+    SAVE_PATH = os.path.join(os.path.dirname(__file__), SAVE_PATH)
 
 print('\x1b[3;37;44m' + "".center(30) + '\x1b[0m')
 print('\x1b[3;37;44m' + "Peripheral Monitor".center(30) + '\x1b[0m')
 print('\x1b[3;37;44m' + "".center(30) + '\x1b[0m')
 
-
-chunk_controller = ScreenChunkController(16)
-controller: PeripheralController = PeripheralController(chunk_controller, debug_mode=False)
+chunk_controller = ScreenChunkController(int(config_data["ChunkSize"]))
+controller: PeripheralController = PeripheralController(chunk_controller, debug_mode=bool(config_data["DebugMode"]))
 
 listener = GeneralListener(controller)
-# listener.start()
+if bool(config_data["FastStart"]):
+    listener.start()
 
 def statistics_menu():
     keep_on_menu: bool = True
@@ -65,7 +72,7 @@ while looping:
                 break
 
         case 1:
-            HMPUtils.save_hmp_file(controller, f"{os.path.dirname(__file__)}/../../saves", ignore_empty_chunks=True)
+            HMPUtils.save_hmp_file(controller, SAVE_PATH, ignore_empty_chunks=bool(config_data["IgnoreEmptyChunks"]))
             saved_file = True
 
         case 2:

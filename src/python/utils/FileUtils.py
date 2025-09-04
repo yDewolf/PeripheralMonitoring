@@ -8,6 +8,12 @@ def save_to_file(data: str, file_path: str, extension: str) -> None:
     with open(os.path.join(file_path, ((str) (datetime.strftime(datetime.now(),"%d-%m-%Y_%H-%M-%S") + extension))), "w+") as file:
         file.write(data)
 
+def get_file_content(file_path: str) -> list[str]:
+    with open(file_path, "r") as file:
+        lines: list[str] = file.readlines()
+        
+        return lines
+
 # CSV Utils
 
 def get_property_names(instance: type) -> list[str]:
@@ -95,14 +101,20 @@ def set_obj_properties(obj: object, csv_line: str, header: str = "") -> dict:
     return value_dict
 
 def clean_string(string: str) -> str:
-    return string.replace("\t", "").replace(" ", "").removesuffix(";")
+    return string.replace("\t", "").replace("\n", "").replace(" ", "").removesuffix(";")
 
-def parse_value(value_str: str) -> float | int | str:
+def parse_value(value_str: str) -> float | int | str | bool:
     formatted = clean_string(value_str)
     if is_valid_int(formatted):
         return int(formatted)
     elif is_valid_float(formatted):
         return float(formatted)
+
+    elif formatted.lower() == "false":
+        return False
+    
+    elif formatted.lower() == "true":
+        return True
 
     return formatted
 
