@@ -28,7 +28,7 @@ class PeripheralController(Controller):
     keyboard_parser: KeyboardEventParser
     mouse_parser: MouseEventParser
 
-    def __init__(self, chunk_controller: ScreenChunkController, key_data_manager: KeyDataManager | None = None, debug_mode: bool = False, tags: list[str] = []) -> None:
+    def __init__(self, chunk_controller: ScreenChunkController, key_data_manager: KeyDataManager | None = None, debug_mode: bool = False, tags: list[str] = [], idle_to_afk_threshold: int = 5000) -> None:
         super().__init__()
         self.debug = debug_mode
         self.tags = tags
@@ -39,7 +39,7 @@ class PeripheralController(Controller):
             
         self.key_data_manager = key_data_manager
         self.keyboard_parser = KeyboardEventParser()
-        self.mouse_parser = MouseEventParser()
+        self.mouse_parser = MouseEventParser(idle_to_afk_threshold)
 
 
     def parse_event(self, type: EventTypes, event):

@@ -133,6 +133,7 @@ def _get_peripheral_controller_data(controller: PeripheralController, ignore_emp
 def get_hmp_file_content(controller: PeripheralController, ignore_empty_chunks: bool = True) -> str:
     file_content: str = f"{FORMAT_VERSION}"
     file_content += "\n" + get_variable_string(FileVariables.CHUNK_SIZE.value, controller.chunk_controller.chunk_size)
+    file_content += "\n" + get_variable_string(FileVariables.IDLE_TO_AFK_THRESHOLD.value, controller.mouse_parser.idle_to_afk_threshold)
     file_content += "\n" + get_variable_string(FileVariables.TAGS.value, ",".join(controller.tags))
     
     file_content += _get_peripheral_controller_data(controller, ignore_empty_chunks)
@@ -179,7 +180,8 @@ def load_hmp_file(file_path: str) -> PeripheralController: # type: ignore
     peripheral_controller = PeripheralController(
         chunk_controller, 
         key_manager,
-        tags=variables.get(FileVariables.TAGS.value, [])
+        tags=variables.get(FileVariables.TAGS.value, []),
+        idle_to_afk_threshold=variables.get(FileVariables.IDLE_TO_AFK_THRESHOLD.value, 5000)
     )
 
     print(f"Took {(time.time_ns() - start_time) * 10 ** -6}ms to parse file")
