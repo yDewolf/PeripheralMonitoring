@@ -1,0 +1,18 @@
+const {PythonShell} = require('python-shell');
+const api_path = "../python/FlaskAPI.py";
+
+
+const python_api = new PythonShell(api_path);
+
+python_api.on('message', function(message) {
+  console.log(message);
+})
+
+python_api.end(function (err) {
+  if (err){
+    throw err;
+  };
+  console.log('finished');
+});
+
+module.exports = { python_api };

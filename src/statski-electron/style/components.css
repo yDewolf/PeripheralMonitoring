@@ -3,6 +3,10 @@ body {
     color: var(--color-clear-white);
 }
 
+.hidden {
+    display: none;
+}
+
 .content {
     display: flex;
     height: calc(100vh - var(--titlebar-height));

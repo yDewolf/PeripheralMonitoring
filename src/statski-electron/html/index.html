@@ -34,7 +34,7 @@
             <hr>
             <div class="control-panel">
                 <ul class="control-buttons">
-                    <li><button class="control-button cancel" id="StopListening">Stop Listening</button></li>
+                    <li><button class="control-button cancel hidden" id="StopListening">Stop Listening</button></li>
                     <li><button class="control-button confirm" id="StartListening">Start Listening</button></li>
                     <li><label for="fetching">Fetch</label><input type="checkbox" name="fetching" id="FetchCheckbox" checked="True"></li>
                 </ul>
@@ -60,10 +60,14 @@
 
         const StartListeningButton = document.getElementById("StartListening");
         StartListeningButton.onclick = () => {
+            StartListeningButton.classList.add("hidden")
+            StopListeningButton.classList.remove("hidden")
             start_listening()
         }
         const StopListeningButton = document.getElementById("StopListening");
         StopListeningButton.onclick = () => {
+            StopListeningButton.classList.add("hidden")
+            StartListeningButton.classList.remove("hidden")
             stop_listening().then(data => {
                 parse_chunk_data(data.body, Canvas, pixel_size)
             })

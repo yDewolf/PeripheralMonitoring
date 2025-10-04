@@ -21,6 +21,8 @@ class FlaskAPI(flask.Flask):
         self.add_url_rule("/get-data/<property>", view_func=self.get_data)
         self.setup_controller()
 
+        print("API Setup Successfully")
+
     def index(self):
         return {"message": "Waiting for requests"}
 
@@ -74,3 +76,4 @@ class FlaskAPI(flask.Flask):
         
 
 api = FlaskAPI(__name__)
+api.run(port=5000)
