@@ -19,7 +19,7 @@ class APIStatus(Enum):
     LISTENING = 3
 
 class FlaskAPI(Flask):
-    DEFAULT_SAVE_PATH: str = os.path.join(os.path.dirname(__file__), "../../saves")
+    DEFAULT_SAVE_PATH: str = os.path.join("saves")
     controller: PeripheralController
     listener: GeneralListener
 
@@ -49,7 +49,7 @@ class FlaskAPI(Flask):
     def setup_controller(self):
         self.status = APIStatus.SETTING_UP
 
-        CONFIG_PATH = os.path.join(os.path.dirname(__file__), "./config.cfg")
+        CONFIG_PATH = os.path.join("./config.cfg")
         config_data = CfgUtils.load_configs(CONFIG_PATH)
 
         SAVE_PATH: str = str(config_data["SavePath"])
