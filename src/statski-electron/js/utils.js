@@ -8,8 +8,8 @@ const SEISMIC_GRADIENT = [
 
 function parse_chunk_data(chunk_data_body, canvas, pixel_size) {
     let context = canvas.getContext("2d");
-    let gradient = SEISMIC_GRADIENT
-    console.log(chunk_data_body)
+    let gradient = SEISMIC_GRADIENT;
+    // console.log(chunk_data_body)
 
     canvas.setAttribute("width", chunk_data_body.grid_size[0] * pixel_size);
     canvas.setAttribute("height", chunk_data_body.grid_size[1] * pixel_size);

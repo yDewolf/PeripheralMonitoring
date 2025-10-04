@@ -1,6 +1,6 @@
 const { app, BrowserWindow } = require('electron/main');
-// import { python_api } from 'js/api_shell.js'; 
-const { python_api } = require('./js/api_shell.js')
+const { python_api } = require('./js/api_shell.js');
+const { PythonShell } = require('python-shell');
 
 const createWindow = () => {
   const win = new BrowserWindow({
@@ -26,5 +26,7 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
+  python_api.kill()
+
   if (process.platform !== 'darwin') app.quit();
 });

@@ -12,7 +12,8 @@ python_api.end(function (err) {
   if (err){
     throw err;
   };
-  console.log('finished');
+
+  console.log('Finished API Process');
 });
 
 module.exports = { python_api };
