@@ -1,4 +1,4 @@
-
+import sys
 import os
 from threading import Thread
 import flask
@@ -8,9 +8,9 @@ from enum import Enum
 from Controllers.PeripheralController import PeripheralController
 from Listeners.GeneralListener import GeneralListener
 from utils import CfgUtils
-from utils import HmpPlotUtils
+from utils import HmpUtils
+from utils import HmpFileUtils
 from utils.Chunk.ScreenChunkController import ScreenChunkController
-import utils.HmpFileUtils as HmpFileUtils
 
 class APIStatus(Enum):
     DOWN = 0
@@ -20,13 +20,16 @@ class APIStatus(Enum):
 
 class FlaskAPI(Flask):
     DEFAULT_SAVE_PATH: str = os.path.join("saves")
+    CONFIG_PATH: str = "../config.cfg"
     controller: PeripheralController
     listener: GeneralListener
 
     status: APIStatus = APIStatus.DOWN
 
-    def __init__(self, import_name: str, static_url_path: str | None = None, static_folder: str | os.PathLike[str] | None = "static", static_host: str | None = None, host_matching: bool = False, subdomain_matching: bool = False, template_folder: str | os.PathLike[str] | None = "templates", instance_path: str | None = None, instance_relative_config: bool = False, root_path: str | None = None):
+    def __init__(self, import_name: str, cfg_path: str, static_url_path: str | None = None, static_folder: str | os.PathLike[str] | None = "static", static_host: str | None = None, host_matching: bool = False, subdomain_matching: bool = False, template_folder: str | os.PathLike[str] | None = "templates", instance_path: str | None = None, instance_relative_config: bool = False, root_path: str | None = None):
         super().__init__(import_name, static_url_path, static_folder, static_host, host_matching, subdomain_matching, template_folder, instance_path, instance_relative_config, root_path)
+        self.CONFIG_PATH = cfg_path
+        
         self.add_url_rule("/", view_func=self.index)
         self.add_url_rule("/listen", view_func=self.listen)
         self.add_url_rule("/stop-listening", view_func=self.stop_listening)
@@ -48,9 +51,7 @@ class FlaskAPI(Flask):
 
     def setup_controller(self):
         self.status = APIStatus.SETTING_UP
-
-        CONFIG_PATH = os.path.join("./config.cfg")
-        config_data = CfgUtils.load_configs(CONFIG_PATH)
+        config_data = CfgUtils.load_configs(self.CONFIG_PATH)
 
         SAVE_PATH: str = str(config_data["SavePath"])
         if bool(config_data["RelativePath"]):
@@ -84,7 +85,7 @@ class FlaskAPI(Flask):
         data = {
             "message": "Stopped listening", 
             "body": {
-                "chunk_data": HmpPlotUtils.chunk_data_to_dict(self.controller),
+                "chunk_data": HmpUtils.chunk_data_to_dict(self.controller),
                 "grid_size": [self.controller.chunk_controller.grid_size.x, self.controller.chunk_controller.grid_size.y], 
                 "chunk_size": self.controller.chunk_controller.chunk_size, 
             }
@@ -100,7 +101,7 @@ class FlaskAPI(Flask):
         data = {
             "message": "Fetching data", 
             "body": {
-                "chunk_data": HmpPlotUtils.chunk_data_to_dict(self.controller, property),
+                "chunk_data": HmpUtils.chunk_data_to_dict(self.controller, property),
                 "grid_size": [self.controller.chunk_controller.grid_size.x, self.controller.chunk_controller.grid_size.y], 
                 "chunk_size": self.controller.chunk_controller.chunk_size, 
             }
@@ -128,7 +129,8 @@ class FlaskAPI(Flask):
         return response
 
 
-api = FlaskAPI(__name__)
+cfg_path = sys.argv[1]
+api = FlaskAPI(__name__, cfg_path)
 api.run(port=5000)
 
 print("Finished API Process")

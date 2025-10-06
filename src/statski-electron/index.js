@@ -2,12 +2,13 @@ const { app, BrowserWindow } = require('electron/main');
 const { execFile } = require('child_process');
 // const { api_child } = require('./js/api_shell.js');
 // const { PythonShell } = require('python-shell');
-var api_child = execFile("../python/dist/FlaskAPI.exe");
-console.log(api_child.pid)
+const api_child = execFile("../python/dist/FlaskAPI.exe", [__dirname + "../python/config.cfg"], (error, stdout, stderr) => {
+  if (error) {
+    throw error;
+  }
 
-api_child.stdout.on('message', function(message) {
-  console.log(message);
-})
+  console.log(stdout);
+});
 
 const createWindow = () => {
   const win = new BrowserWindow({
@@ -33,7 +34,7 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-  // python_api.kill()
+  api_child.kill();
   api_child.kill();
 
   if (process.platform !== 'darwin') app.quit();

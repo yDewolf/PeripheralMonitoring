@@ -10,7 +10,8 @@
   "author": "yDewolf",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^37.4.0"
+    "electron": "^37.4.0",
+    "electron-packager": "^17.1.2"
   },
   "dependencies": {
     "python-shell": "^5.0.0"
