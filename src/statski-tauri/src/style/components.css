@@ -1,0 +1,152 @@
+body {
+    margin: 0;
+    color: var(--color-clear-white);
+}
+
+.hidden {
+    display: none;
+}
+
+.content {
+    display: flex;
+    height: calc(100vh - var(--titlebar-height));
+}
+
+.left-panel, .main-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.left-panel {
+    width: 200px;
+    background-color: var(--color-dark-gray);
+}
+
+.left-panel, .control-panel {
+    padding: 20px;
+}
+
+.main-content {
+    width: 100%;
+    background-color: var(--color-clear-black);
+    
+    justify-content: space-between;
+}
+
+.navbar {
+    display: flex;
+    align-items: center;
+    min-height: 55px;
+
+    background-color: var(--color-darker-gray);
+}
+
+.navbar-right {
+    margin-right: 0;
+    margin-left: auto;
+}
+
+.navbar-items, .left-panel-options, .control-buttons {
+    display: flex;
+    list-style: none;
+    align-items: center;
+    padding: 0;
+
+    margin: 0;
+}
+
+.navbar, .left-panel-options {
+    padding: 5px 10px;
+}
+
+.left-panel-options {
+    flex-direction: column;
+}
+
+.left-panel-option {
+    display: flex;
+    margin: 5px 0;
+    width: 100%;
+    a {
+        width: 100%;
+    }
+}
+
+.nav-item {
+    margin: 0 10px;
+}
+
+.statistic-preview {
+    margin: auto;
+}
+
+.control-panel {
+    height: 40%;
+    display: flex;
+    flex-direction: column;
+    
+    align-items: center;
+}
+
+.control-button, button {
+    transition: 150ms;
+    border: none;
+    border-radius: var(--default-border-radius);
+    background-color: var(--color-clear-white);
+    
+    padding: 10px;
+}
+
+.cancel {
+    background-color: var(--color-nono-red);
+    color: var(--color-clear-white);
+}
+
+.confirm {
+    background-color: var(--color-ok-green);
+}
+
+button:hover {
+    background-color: var(--color-gray);
+    color: var(--color-clear-white)
+}
+
+.control-button {
+    margin: 0 10px;
+    
+}
+
+.control-button:hover {
+    padding: 12px;
+}
+
+.settings-button {
+    margin-top: auto;
+}
+
+hr {
+    min-height: 3px;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+
+    background-color: var(--color-gray);
+    border: none;
+}
+
+a {
+    text-align: center;
+    text-decoration: none;
+
+    background-color: var(--color-gray);
+    border-radius: var(--default-border-radius);
+    color: var(--color-clear-white);
+
+    padding: 7px 12px;
+}
+
+a:hover {
+    transition: 150ms;
+    background-color: var(--color-clear-white);
+    color: var(--color-gray);
+}
