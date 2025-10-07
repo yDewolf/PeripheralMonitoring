@@ -138,6 +138,9 @@ if len(sys.argv) > 1:
 
 config_data = CfgUtils.load_configs(cfg_path)
 
+if not os.path.isdir(config_data["SavePath"]):
+    os.mkdir(config_data["SavePath"])
+
 api = FlaskAPI(__name__, config_data)
 api.run(port=int(config_data["Port"]))
 
