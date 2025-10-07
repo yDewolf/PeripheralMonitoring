@@ -1,7 +1,7 @@
-import { Command } from '@tauri-apps/plugin-shell';
-const command = Command.sidecar('FlaskAPI');
-const child = await command.spawn();
+import { shutdown_api } from "./ts/api_calls";
 
-window.onclose = (ev: Event) => {
-    child.kill();
+window.onclose = (_ev: Event) => {
+    // TODO: Add popup to ask if it should save before closing
+    shutdown_api(true);
+    console.log("Asked to the API to shutdown");
 };

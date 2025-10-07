@@ -12,7 +12,8 @@ pub fn run() {
             .sidecar("FlaskAPI")
             .expect("Failed to create side car");
 
-        let (mut rx, child) = sidecar
+        
+        let (mut rx, _child) = sidecar
             .args(["config.cfg"])
             .spawn()
             .expect("Failed to initialize sidecar");

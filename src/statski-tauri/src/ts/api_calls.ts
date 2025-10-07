@@ -1,6 +1,6 @@
 const API_URL = "http://127.0.0.1:5000/";
 
-export {check_api_status, fetch_chunk_data, start_listening, stop_listening, save_file};
+export {check_api_status, shutdown_api, fetch_chunk_data, start_listening, stop_listening, save_file};
 
 export interface BaseResponse {
     message: string;
@@ -22,14 +22,28 @@ interface ChunkData {
 async function check_api_status() {
     const response: BaseResponse = await fetch(API_URL, {
         method: 'GET',
-        headers: {
-            
-        }
+        headers: {}
     }).then(
         response => {
             return response.json()
         }
     ).catch(error => {
+        console.error('Error fetching data:', error); 
+    });
+
+    return response;
+}
+
+async function shutdown_api(save_before_shutting_down: boolean = true) {
+    const response: BaseResponse = await fetch(API_URL + "shutdown", {
+        method: 'GET',
+        headers: {},
+        body: JSON.stringify({"save": save_before_shutting_down})
+    }).then(
+    response => {
+        return response.json()
+    }
+    ).then().catch(error => {
         console.error('Error fetching data:', error); 
     });
 
