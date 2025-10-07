@@ -1,5 +1,6 @@
 import sys
 import os
+import signal
 from threading import Thread
 import flask
 from flask import Flask, Response, request
@@ -8,7 +9,6 @@ from enum import Enum
 from Controllers.PeripheralController import PeripheralController
 from Listeners.GeneralListener import GeneralListener
 from utils.Config.Config import ConfigData
-from utils import CfgUtils
 from utils import HmpUtils
 from utils import HmpFileUtils
 from utils.Chunk.ScreenChunkController import ScreenChunkController
@@ -18,6 +18,7 @@ class APIStatus(Enum):
     SETTING_UP = 1
     READY = 2
     LISTENING = 3
+    FINISHING = 4
 
 class FlaskAPI(Flask):
     config_data: ConfigData
@@ -37,6 +38,7 @@ class FlaskAPI(Flask):
         self.add_url_rule("/get-data/<property>", view_func=self.get_data)
         self.add_url_rule("/save-file-data", view_func=self.save_file_data, methods=["POST"])
         self.setup_controller()
+        self.after_request(self.terminate_proccess)
 
         print("API Setup Successfully")
 
@@ -53,17 +55,28 @@ class FlaskAPI(Flask):
         
         if save_before_shutting_down:
             # Prevent it from trying to save without even having data
-            if self.controller.start_listen_time:
+            try:
+                start_time = self.controller.start_listen_time
+            
                 HmpFileUtils.save_hmp_file(self.controller, self.config_data.SavePath)
                 message += f" | Saved file to {self.config_data.SavePath}"
                 print(f"Saved HMP to {self.config_data.SavePath}")
             
-        self.status = APIStatus.DOWN
+            except AttributeError:
+                print("Controller has no data...")
+
+        self.status = APIStatus.FINISHING
         return self.generate_response(message)
-    
+
+    def terminate_proccess(self, response: Response) -> Response:
+        if self.status == APIStatus.FINISHING:
+            print("Killing API proccess")
+            os.kill(os.getpid(), signal.CTRL_C_EVENT)
+            
+        return response
+
     def index(self):
         return self.generate_response("Waiting...")
-
 
     def setup_controller(self):
         self.status = APIStatus.SETTING_UP
@@ -116,13 +129,16 @@ class FlaskAPI(Flask):
         if file_path == "":
             file_path = self.config_data.SavePath
         
-        if not self.controller.start_listen_time:
+        # Prevent it from trying to save without even having data
+        try:
+            start_time = self.controller.start_listen_time
+            HmpFileUtils.save_hmp_file(self.controller, file_path)
+            return self.generate_response(f"Saved HMP file to {file_path}")
+            
+        except AttributeError:
             return self.generate_response(f"Didn't have any data to save")
-        
-        HmpFileUtils.save_hmp_file(self.controller, file_path)
-        return self.generate_response(f"Saved HMP file to {file_path}")
 
-    
+
     def generate_response(self, message: str, body: dict = {}) -> Response:
         data = {
             "message": message,

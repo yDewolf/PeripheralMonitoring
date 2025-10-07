@@ -1,7 +1,7 @@
 import utils.FileUtils as FileUtils
 
 def save_configs(data: dict[str, object], file_path: str):
-    with open(file_path, "w") as file:
+    with open(file_path, "w+") as file:
         file_contents: str = ""
         for key in data:
             file_contents += f"{key}: {data[key]}\n"
