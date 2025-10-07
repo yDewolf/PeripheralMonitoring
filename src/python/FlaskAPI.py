@@ -2,7 +2,7 @@ import sys
 import os
 from threading import Thread
 import flask
-from flask import Flask, request
+from flask import Flask, Response, request
 from enum import Enum
 
 from Controllers.PeripheralController import PeripheralController
@@ -19,18 +19,18 @@ class APIStatus(Enum):
     LISTENING = 3
 
 class FlaskAPI(Flask):
-    DEFAULT_SAVE_PATH: str = os.path.join("saves")
-    CONFIG_PATH: str = "../config.cfg"
+    config_data: dict = {}
     controller: PeripheralController
     listener: GeneralListener
 
     status: APIStatus = APIStatus.DOWN
 
-    def __init__(self, import_name: str, cfg_path: str, static_url_path: str | None = None, static_folder: str | os.PathLike[str] | None = "static", static_host: str | None = None, host_matching: bool = False, subdomain_matching: bool = False, template_folder: str | os.PathLike[str] | None = "templates", instance_path: str | None = None, instance_relative_config: bool = False, root_path: str | None = None):
+    def __init__(self, import_name: str, config_data: dict, static_url_path: str | None = None, static_folder: str | os.PathLike[str] | None = "static", static_host: str | None = None, host_matching: bool = False, subdomain_matching: bool = False, template_folder: str | os.PathLike[str] | None = "templates", instance_path: str | None = None, instance_relative_config: bool = False, root_path: str | None = None):
         super().__init__(import_name, static_url_path, static_folder, static_host, host_matching, subdomain_matching, template_folder, instance_path, instance_relative_config, root_path)
-        self.CONFIG_PATH = cfg_path
+        self.config_data = config_data
         
         self.add_url_rule("/", view_func=self.index)
+        self.add_url_rule("/shutdown", view_func=self.shutdown)
         self.add_url_rule("/listen", view_func=self.listen)
         self.add_url_rule("/stop-listening", view_func=self.stop_listening)
         self.add_url_rule("/get-data/<property>", view_func=self.get_data)
@@ -39,25 +39,40 @@ class FlaskAPI(Flask):
 
         print("API Setup Successfully")
 
-    def index(self):
-        response = flask.jsonify({
-            "message": "Waiting for requests",
-            "status": self.status.value
-        })
-        response.headers['Access-Control-Allow-Origin'] = '*' 
-        response.headers['Content-Type'] = 'application/json'
+    def shutdown(self):
+        if self.listener.running:
+            if self.config_data["DebugMode"]:
+                print("Stopping Listener... ")
+            self.listener.stop()
+            
+            if self.config_data["DebugMode"]:
+                print("Listener Stopped.")
 
-        return response
+        message: str = "Shut down the API"
+        
+        request_data: dict = request.get_json()
+        
+        save_before_shutting_down: bool = bool(request_data.get("save", True))
+        if save_before_shutting_down:
+            HmpFileUtils.save_hmp_file(self.controller, self.config_data["SavePath"])
+            message += f" | Saved file to {self.config_data["SavePath"]}"
+            print(f"Saved HMP to {self.config_data["SavePath"]}")
+            
+        self.status = APIStatus.DOWN
+        return self.generate_response(message)
+    
+    def index(self):
+        return self.generate_response("Waiting...")
+
 
     def setup_controller(self):
         self.status = APIStatus.SETTING_UP
-        config_data = CfgUtils.load_configs(self.CONFIG_PATH)
 
-        SAVE_PATH: str = str(config_data["SavePath"])
-        if bool(config_data["RelativePath"]):
+        SAVE_PATH: str = str(self.config_data["SavePath"])
+        if bool(self.config_data["RelativePath"]):
             SAVE_PATH = os.path.join(os.path.dirname(__file__), SAVE_PATH)
 
-        chunk_controller: ScreenChunkController = ScreenChunkController(int(config_data["ChunkSize"]))
+        chunk_controller: ScreenChunkController = ScreenChunkController(int(self.config_data["ChunkSize"]))
         self.controller = PeripheralController(
             chunk_controller,
             debug_mode=bool(config_data["DebugMode"]),
@@ -67,70 +82,63 @@ class FlaskAPI(Flask):
 
         self.status = APIStatus.READY
 
+
     def listen(self):
         listener_thread = Thread(target=self.listener.start)
         listener_thread.start()
         
-        data = {"message": "Listening..."}
-        response = flask.jsonify(data)
-        response.headers['Access-Control-Allow-Origin'] = '*' 
-        response.headers['Content-Type'] = 'application/json'
-
         self.status = APIStatus.LISTENING
-        return response
+        return self.generate_response("Listening to inputs...")
 
     def stop_listening(self):
         self.listener.stop()
-        
-        data = {
-            "message": "Stopped listening", 
-            "body": {
-                "chunk_data": HmpUtils.chunk_data_to_dict(self.controller),
-                "grid_size": [self.controller.chunk_controller.grid_size.x, self.controller.chunk_controller.grid_size.y], 
-                "chunk_size": self.controller.chunk_controller.chunk_size, 
-            }
-        }
-        response = flask.jsonify(data)
-        response.headers['Access-Control-Allow-Origin'] = '*' 
-        response.headers['Content-Type'] = 'application/json'
-
         self.status = APIStatus.READY
-        return response
+        body_data = {
+            "chunk_data": HmpUtils.chunk_data_to_dict(self.controller),
+            "grid_size": [self.controller.chunk_controller.grid_size.x, self.controller.chunk_controller.grid_size.y], 
+            "chunk_size": self.controller.chunk_controller.chunk_size, 
+        }
+        return self.generate_response("Stopped listening to inputs", body_data)
 
     def get_data(self, property: str = "times_hovered"):
-        data = {
-            "message": "Fetching data", 
-            "body": {
-                "chunk_data": HmpUtils.chunk_data_to_dict(self.controller, property),
-                "grid_size": [self.controller.chunk_controller.grid_size.x, self.controller.chunk_controller.grid_size.y], 
-                "chunk_size": self.controller.chunk_controller.chunk_size, 
-            }
+        body_data = {
+            "chunk_data": HmpUtils.chunk_data_to_dict(self.controller, property),
+            "grid_size": [self.controller.chunk_controller.grid_size.x, self.controller.chunk_controller.grid_size.y], 
+            "chunk_size": self.controller.chunk_controller.chunk_size, 
         }
-        response = flask.jsonify(data)
-        response.headers['Access-Control-Allow-Origin'] = '*' 
-        response.headers['Content-Type'] = 'application/json'
-
-        return response
+        return self.generate_response("Fetched Data", body=body_data)
 
     def save_file_data(self): 
         request_data: dict = request.get_json()
-        file_path = request_data.get("file_path", self.DEFAULT_SAVE_PATH)
+        file_path = request_data.get("file_path", self.config_data["SavePath"])
         if file_path == "":
-            file_path = self.DEFAULT_SAVE_PATH
+            file_path = self.config_data["SavePath"]
         
         HmpFileUtils.save_hmp_file(self.controller, file_path)
-        data = {
-            "message": "Saved file contents",
-        }
+        return self.generate_response(f"Saved HMP file to {file_path}")
 
+    
+    def generate_response(self, message: str, body: dict = {}) -> Response:
+        data = {
+            "message": message,
+            "status": self.status
+        }
+        if body != {}:
+            data["body"] = body
+        
         response = flask.jsonify(data)
         response.headers['Access-Control-Allow-Origin'] = '*' 
         response.headers['Content-Type'] = 'application/json'
+
         return response
 
+cfg_path: str = "./config.cfg"
+if len(sys.argv) > 1:
+    cfg_path = sys.argv[1]
 
-cfg_path = sys.argv[1]
-api = FlaskAPI(__name__, cfg_path)
-api.run(port=5000)
+config_data = CfgUtils.load_configs(cfg_path)
+
+api = FlaskAPI(__name__, config_data)
+api.run(port=int(config_data["Port"]))
 
 print("Finished API Process")
