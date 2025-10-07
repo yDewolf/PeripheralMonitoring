@@ -35,10 +35,11 @@ async function check_api_status() {
 }
 
 async function shutdown_api(save_before_shutting_down: boolean = true) {
-    const response: BaseResponse = await fetch(API_URL + "shutdown", {
+    // TODO: Fix CORS Policy
+    const response: BaseResponse = await fetch(API_URL + "shutdown/" + save_before_shutting_down, {
         method: 'GET',
-        headers: {},
-        body: JSON.stringify({"save": save_before_shutting_down})
+        headers: {
+        },
     }).then(
     response => {
         return response.json()
@@ -99,14 +100,11 @@ async function fetch_chunk_data(chunk_property: string) {
 }
 
 async function save_file(file_path: string) {
-    const response: BaseResponse = await fetch(API_URL + "save-file-data", {
-        method: 'POST',
+    // TODO: Fix CORS Policy
+    const response: BaseResponse = await fetch(API_URL + "save-file-data/" + file_path, {
+        method: 'GET',
         headers: {
-            "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-            "file_path": file_path
-        })
     }).then(
         response => {
             return response.json()

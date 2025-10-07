@@ -1,6 +1,8 @@
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 
 use tauri::async_runtime;
+use tauri::Manager;
 use tauri_plugin_shell::process::CommandEvent;
 use tauri_plugin_shell::ShellExt;
 
@@ -11,10 +13,13 @@ pub fn run() {
             .shell()
             .sidecar("FlaskAPI")
             .expect("Failed to create side car");
-
         
+        let resource_dir = app.path().resource_dir().ok().take();
+        let mut resource_path = resource_dir.unwrap();
+        let path_str = resource_path.as_mut_os_str().to_os_string().into_string().unwrap();
+
         let (mut rx, _child) = sidecar
-            .args(["config.cfg"])
+            .args([path_str + "\\config.cfg"])
             .spawn()
             .expect("Failed to initialize sidecar");
 

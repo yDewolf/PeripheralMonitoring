@@ -2,6 +2,7 @@ import { parse_chunk_data } from './utils';
 import { check_api_status, fetch_chunk_data, start_listening, stop_listening, save_file} from './api_calls';
 
 const DEFAULT_FILE_PATH = "";
+const FETCH_INTERVAL: number = 100;
 let current_api_status = 0;
 
 const Canvas = document.getElementById("MouseHeatmap")!;
@@ -51,7 +52,7 @@ setInterval(() => {
             parse_chunk_data(data.body, Canvas, pixel_size * ratio);
         }
     });
-}, 200);
+}, FETCH_INTERVAL);
 
 setInterval(() => {
     if (FetchCheckbox.checked) {

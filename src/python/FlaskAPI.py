@@ -7,6 +7,7 @@ from enum import Enum
 
 from Controllers.PeripheralController import PeripheralController
 from Listeners.GeneralListener import GeneralListener
+from utils.Config.Config import ConfigData
 from utils import CfgUtils
 from utils import HmpUtils
 from utils import HmpFileUtils
@@ -19,18 +20,18 @@ class APIStatus(Enum):
     LISTENING = 3
 
 class FlaskAPI(Flask):
-    config_data: dict = {}
+    config_data: ConfigData
     controller: PeripheralController
     listener: GeneralListener
 
     status: APIStatus = APIStatus.DOWN
 
-    def __init__(self, import_name: str, config_data: dict, static_url_path: str | None = None, static_folder: str | os.PathLike[str] | None = "static", static_host: str | None = None, host_matching: bool = False, subdomain_matching: bool = False, template_folder: str | os.PathLike[str] | None = "templates", instance_path: str | None = None, instance_relative_config: bool = False, root_path: str | None = None):
+    def __init__(self, import_name: str, config_data: ConfigData, static_url_path: str | None = None, static_folder: str | os.PathLike[str] | None = "static", static_host: str | None = None, host_matching: bool = False, subdomain_matching: bool = False, template_folder: str | os.PathLike[str] | None = "templates", instance_path: str | None = None, instance_relative_config: bool = False, root_path: str | None = None):
         super().__init__(import_name, static_url_path, static_folder, static_host, host_matching, subdomain_matching, template_folder, instance_path, instance_relative_config, root_path)
         self.config_data = config_data
         
         self.add_url_rule("/", view_func=self.index)
-        self.add_url_rule("/shutdown", view_func=self.shutdown)
+        self.add_url_rule("/shutdown/<save_before_shutting_down>", view_func=self.shutdown)
         self.add_url_rule("/listen", view_func=self.listen)
         self.add_url_rule("/stop-listening", view_func=self.stop_listening)
         self.add_url_rule("/get-data/<property>", view_func=self.get_data)
@@ -39,24 +40,23 @@ class FlaskAPI(Flask):
 
         print("API Setup Successfully")
 
-    def shutdown(self):
+    def shutdown(self, save_before_shutting_down: bool = True):
         if self.listener.running:
-            if self.config_data["DebugMode"]:
+            if self.config_data.DebugMode:
                 print("Stopping Listener... ")
             self.listener.stop()
             
-            if self.config_data["DebugMode"]:
+            if self.config_data.DebugMode:
                 print("Listener Stopped.")
 
         message: str = "Shut down the API"
         
-        request_data: dict = request.get_json()
-        
-        save_before_shutting_down: bool = bool(request_data.get("save", True))
         if save_before_shutting_down:
-            HmpFileUtils.save_hmp_file(self.controller, self.config_data["SavePath"])
-            message += f" | Saved file to {self.config_data["SavePath"]}"
-            print(f"Saved HMP to {self.config_data["SavePath"]}")
+            # Prevent it from trying to save without even having data
+            if self.controller.start_listen_time:
+                HmpFileUtils.save_hmp_file(self.controller, self.config_data.SavePath)
+                message += f" | Saved file to {self.config_data.SavePath}"
+                print(f"Saved HMP to {self.config_data.SavePath}")
             
         self.status = APIStatus.DOWN
         return self.generate_response(message)
@@ -68,15 +68,15 @@ class FlaskAPI(Flask):
     def setup_controller(self):
         self.status = APIStatus.SETTING_UP
 
-        SAVE_PATH: str = str(self.config_data["SavePath"])
-        if bool(self.config_data["RelativePath"]):
+        SAVE_PATH: str = str(self.config_data.SavePath)
+        if bool(self.config_data.RelativePath):
             SAVE_PATH = os.path.join(os.path.dirname(__file__), SAVE_PATH)
 
-        chunk_controller: ScreenChunkController = ScreenChunkController(int(self.config_data["ChunkSize"]))
+        chunk_controller: ScreenChunkController = ScreenChunkController(int(self.config_data.ChunkSize))
         self.controller = PeripheralController(
             chunk_controller,
-            debug_mode=bool(config_data["DebugMode"]),
-            idle_to_afk_threshold=int(config_data["IdleToAfkThreshold"])
+            debug_mode=bool(config_data.DebugMode),
+            idle_to_afk_threshold=int(config_data.IdleToAfkThreshold)
         )
         self.listener = GeneralListener(self.controller)
 
@@ -108,11 +108,16 @@ class FlaskAPI(Flask):
         }
         return self.generate_response("Fetched Data", body=body_data)
 
-    def save_file_data(self): 
-        request_data: dict = request.get_json()
-        file_path = request_data.get("file_path", self.config_data["SavePath"])
+    def save_file_data(self, file_path: str = ""):
+        # TODO: Fix CORS Policy
+        # request_data: dict = request.get_json()
+        # file_path = request_data.get("file_path", self.config_data.SavePath)
+        
         if file_path == "":
-            file_path = self.config_data["SavePath"]
+            file_path = self.config_data.SavePath
+        
+        if not self.controller.start_listen_time:
+            return self.generate_response(f"Didn't have any data to save")
         
         HmpFileUtils.save_hmp_file(self.controller, file_path)
         return self.generate_response(f"Saved HMP file to {file_path}")
@@ -121,27 +126,29 @@ class FlaskAPI(Flask):
     def generate_response(self, message: str, body: dict = {}) -> Response:
         data = {
             "message": message,
-            "status": self.status
+            "status": self.status.value
         }
         if body != {}:
             data["body"] = body
-        
         response = flask.jsonify(data)
+        
         response.headers['Access-Control-Allow-Origin'] = '*' 
         response.headers['Content-Type'] = 'application/json'
 
         return response
 
 cfg_path: str = "./config.cfg"
+print("Received arguments", sys.argv)
 if len(sys.argv) > 1:
-    cfg_path = sys.argv[1]
+    cfg_path = sys.argv[1].removeprefix("'").removesuffix("'")
+    cfg_path = cfg_path.removeprefix("\\\\\\\\?\\\\")
 
-config_data = CfgUtils.load_configs(cfg_path)
+config_data: ConfigData = ConfigData(cfg_path, not os.path.exists(cfg_path))
 
-if not os.path.isdir(config_data["SavePath"]):
-    os.mkdir(config_data["SavePath"])
+if not os.path.isdir(str(config_data.SavePath)):
+    os.mkdir(str(config_data.SavePath))
 
 api = FlaskAPI(__name__, config_data)
-api.run(port=int(config_data["Port"]))
+api.run(port=config_data.Port)
 
 print("Finished API Process")
