@@ -23,12 +23,7 @@ class ConfigData:
             self.save_to_file(file_path)
             return
         
-        data = CfgUtils.load_configs(file_path)
-        for key in data.keys():
-            if not self.__getattribute__(key):
-                continue
-                
-            self.__setattr__(key, data[key])
+        self.load_from_file(file_path)    
     
     def save_to_file(self, file_path: str = ""):
         data = {}
@@ -37,3 +32,11 @@ class ConfigData:
             data[property] = self.__getattribute__(property)
 
         CfgUtils.save_configs(data, file_path)
+    
+    def load_from_file(self, file_path: str = ""):
+        data = CfgUtils.load_configs(file_path)
+        for key in data.keys():
+            if not self.__getattribute__(key):
+                continue
+                
+            self.__setattr__(key, data[key])

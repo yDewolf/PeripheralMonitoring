@@ -37,10 +37,11 @@ class FlaskAPI(Flask):
         self.add_url_rule("/listen", view_func=self.listen)
         self.add_url_rule("/stop-listening", view_func=self.stop_listening)
         self.add_url_rule("/get-data/<property>", view_func=self.get_data)
-        self.add_url_rule("/save-file-data", view_func=self.save_file_data, methods=["POST"])
+        self.add_url_rule("/save-file-data/<file_path>", view_func=self.save_file_data)
+        self.add_url_rule("/save-file-data/", view_func=self.save_file_data)
         self.setup_controller()
         
-        self.teardown_request(self.terminate_proccess)
+        self.teardown_request(self.terminate_process)
 
         print("API Setup Successfully")
 
@@ -70,7 +71,7 @@ class FlaskAPI(Flask):
         self.status = APIStatus.FINISHING
         return self.generate_response(message)
 
-    def terminate_proccess(self, exception):
+    def terminate_process(self, exception):
         if self.status == APIStatus.FINISHING:
             print("Killing API proccess")
             kill_thread = Thread(target=self.kill_function)
@@ -163,17 +164,40 @@ class FlaskAPI(Flask):
 
         return response
 
-cfg_path: str = "./config.cfg"
-print("Received arguments", sys.argv)
-if len(sys.argv) > 1:
-    cfg_path = sys.argv[1].removeprefix("'").removesuffix("'")
-    cfg_path = cfg_path.removeprefix("\\\\\\\\?\\\\")
+DEFAULT_CFG_PATH: str = "./config.cfg"
+DEFAULT_SAVE_PATH: str = ConfigData.SavePath
+
+cfg_path: str = DEFAULT_CFG_PATH
+save_path: str = DEFAULT_SAVE_PATH
+
+previous_argument: str = ""
+for idx, argument in enumerate(sys.argv):
+    if idx == 0:
+        continue
+    
+    match previous_argument:
+        case "--save":
+            print("Parsing save path")
+            save_path = argument.removeprefix("'").removesuffix("'")
+            save_path = save_path.removeprefix("\\\\\\\\?\\\\")
+
+        case "--config":
+            print("Parsing config path")
+            cfg_path = argument.removeprefix("'").removesuffix("'")
+            cfg_path = cfg_path.removeprefix("\\\\\\\\?\\\\")
+
+    previous_argument = argument
+
 
 config_data: ConfigData = ConfigData(cfg_path, not os.path.exists(cfg_path))
+if config_data.SavePath != save_path:
+    config_data.SavePath = save_path
+
 
 if not os.path.isdir(str(config_data.SavePath)):
     os.mkdir(str(config_data.SavePath))
 
+print(f"API Version: 0.1")
 api = FlaskAPI(__name__, config_data)
 api.run(port=config_data.Port)
 

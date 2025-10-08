@@ -2,3 +2,4 @@
 *.hmp
 */__pycache
 /src/python/build
+/src/python/scripts
