@@ -1,5 +1,5 @@
 import { parse_chunk_data } from './utils';
-import { check_api_status, fetch_chunk_data, start_listening, stop_listening, save_file} from './api_calls';
+import { shutdown_api, check_api_status, fetch_chunk_data, start_listening, stop_listening, save_file} from './api_calls';
 
 const DEFAULT_FILE_PATH = "";
 const FETCH_INTERVAL: number = 100;
@@ -90,4 +90,11 @@ StopListeningButton.onclick = () => {
 const SaveButton = document.getElementById("SaveFile")!;
 SaveButton.onclick = () => {
     save_file(DEFAULT_FILE_PATH)
+}
+
+const FinishAPIButton = document.getElementById("FinishAPI")!;
+FinishAPIButton.onclick = () => {
+    shutdown_api(false).then(data => {
+        console.log(data);
+    });
 }

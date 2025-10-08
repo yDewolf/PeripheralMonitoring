@@ -1,6 +1,7 @@
 import sys
 import os
 import signal
+import time
 from threading import Thread
 import flask
 from flask import Flask, Response, request
@@ -38,7 +39,8 @@ class FlaskAPI(Flask):
         self.add_url_rule("/get-data/<property>", view_func=self.get_data)
         self.add_url_rule("/save-file-data", view_func=self.save_file_data, methods=["POST"])
         self.setup_controller()
-        self.after_request(self.terminate_proccess)
+        
+        self.teardown_request(self.terminate_proccess)
 
         print("API Setup Successfully")
 
@@ -68,12 +70,15 @@ class FlaskAPI(Flask):
         self.status = APIStatus.FINISHING
         return self.generate_response(message)
 
-    def terminate_proccess(self, response: Response) -> Response:
+    def terminate_proccess(self, exception):
         if self.status == APIStatus.FINISHING:
             print("Killing API proccess")
-            os.kill(os.getpid(), signal.CTRL_C_EVENT)
-            
-        return response
+            kill_thread = Thread(target=self.kill_function)
+            kill_thread.start()
+    
+    def kill_function(self):
+        time.sleep(1)
+        os.kill(os.getpid(), signal.SIGINT)
 
     def index(self):
         return self.generate_response("Waiting...")
@@ -133,10 +138,15 @@ class FlaskAPI(Flask):
         try:
             start_time = self.controller.start_listen_time
             HmpFileUtils.save_hmp_file(self.controller, file_path)
+            print("Saved file to ", file_path)
             return self.generate_response(f"Saved HMP file to {file_path}")
             
         except AttributeError:
+            pass
+        
+        finally:
             return self.generate_response(f"Didn't have any data to save")
+
 
 
     def generate_response(self, message: str, body: dict = {}) -> Response:
