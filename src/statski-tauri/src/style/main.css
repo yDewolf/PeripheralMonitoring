@@ -1,5 +1,12 @@
 :root {
     --color-main: #E6B63A;
+    --font-color: #F5FCFF;
+    --font-color-hover: #06041B;
+    --background-color: #31343D;
+    --background-color-hover: #F5FCFF;
+
+    --main-content-background: var(--color-clear-black);
+
     --color-main-dark: #06041B;
     --color-clear-white: #F5FCFF;
     --color-clear-black: #0D0E11;
@@ -16,22 +23,34 @@
 @media (prefers-color-scheme: light) {
   * {
     --color-main: #E6B63A;
+    --font-color: var(--color-clear-black);
+    --font-color-hover: var(--color-clear-black);
+    --background-color: var(--color-clear-white);
+    --background-color-hover: var(--color-main-dark);
+
+    --main-content-background: var(--color-gray);
+
     --color-main-dark: #F5FCFF;
-    --color-clear-white: #06041B;
-    --color-clear-black: #F5FCFF;
+    --color-clear-white: #F5FCFF;
+    --color-clear-black: #0D0E11;
     --color-ok-green: #92FF93;
     --color-nono-red: #DA4B4B;
-    --color-gray: #e4ebfd;
+    --color-gray: #757d91;
     --color-dark-gray: #cfd5e6;
     --color-darker-gray: #bdc6df;
   }
+
+  .titlebar {
+    background: var(--color-gray);
+    color: var(--color-main);
+  }
+
+  * {
+      font-family: "PixelFont";
+  }
 }
 
-* {
-    font-family: "PixelFont";
-}
-
-.titlebar {
+/* .titlebar {
     font-family: "PixelFont";
     height: var(--titlebar-height);
     padding: 0 5px;
@@ -40,4 +59,54 @@
     display: flex;
     align-items: center;
     app-region: drag;
+} */
+
+.titlebar-spacer {
+  height: 30px;
+}
+
+.titlebar {
+  app-region: drag;
+  height: 30px;
+  user-select: none;
+  background: var(--color-main-dark);
+  /* display: flex; */
+  display: grid;
+  grid-template-columns: 0px auto max-content;
+
+  align-items: center;
+  
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+.controls {
+  display: grid;
+  margin-left: auto;
+  grid-template-columns: repeat(3, 30px);
+}
+
+.titlebar-title {
+  font-family: "PixelFont";
+  padding: 2px 5px;
+}
+
+.titlebar button {
+  cursor: default;
+
+  appearance: none;
+  padding: 0;
+  margin: 0;
+  border: none;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 30px;
+  background-color: transparent;
+}
+
+.titlebar button:hover {
+  background: var(--color-nono-red);
 }
