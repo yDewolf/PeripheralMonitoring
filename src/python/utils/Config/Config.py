@@ -14,7 +14,11 @@ class ConfigData:
 
     IgnoreEmptyChunks: bool = True
 
-    def __init__(self, file_path: str = "", create_file: bool = False) -> None:
+    def __init__(self, file_path: str = "", save_path: str = "saves", create_file: bool = False) -> None:
+        self.SavePath = save_path
+        if self.SavePath.__contains__("\\"):
+            self.RelativePath = False
+
         if file_path == "":
             return
                 

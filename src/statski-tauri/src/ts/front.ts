@@ -1,9 +1,9 @@
 import { parse_chunk_data } from './utils';
-import { shutdown_api, check_api_status, fetch_chunk_data, start_listening, stop_listening, save_file} from './api_calls';
+import { shutdown_api, check_api_status, fetch_chunk_data, start_listening, stop_listening, save_file, APIStatus} from './api_calls';
 
 const DEFAULT_FILE_PATH = "";
 const FETCH_INTERVAL: number = 100;
-let current_api_status = 0;
+let current_api_status: APIStatus = APIStatus.DOWN;
 
 const Canvas = document.getElementById("MouseHeatmap")!;
 const FetchCheckbox = document.getElementById("FetchCheckbox")! as HTMLInputElement;
@@ -39,13 +39,14 @@ window.addEventListener('resize', function() {
 });
 
 setInterval(() => {
-    if (current_api_status != 3) {
+    if (current_api_status != APIStatus.LISTENING) {
         return;
     }
 
     if (!FetchCheckbox.checked) {
         return;
     }
+    
     fetch_chunk_data(chunk_property).then(data => {
         if (data.body) {
             grid_size = data.body.grid_size 
@@ -58,23 +59,14 @@ setInterval(() => {
     if (FetchCheckbox.checked) {
         return;
     }
-    check_api_status().then(data => {
-        current_api_status = data.status;
-        StatusLabel.innerText = "API Status: " + current_api_status;
-    });
-    if (current_api_status == 3) {
-        StartListeningButton.classList.add("hidden")
-        StopListeningButton.classList.remove("hidden")
-    } else {
-        StartListeningButton.classList.remove("hidden")
-        StopListeningButton.classList.add("hidden")
-    }
+    update_api_status();
 }, 250);
 
 const StartListeningButton = document.getElementById("StartListening")!;
 StartListeningButton.onclick = () => {
     start_listening().then(() => {
         FetchCheckbox.checked = true;
+        update_api_status();
     })
 }
 const StopListeningButton = document.getElementById("StopListening")!;
@@ -96,5 +88,20 @@ const FinishAPIButton = document.getElementById("FinishAPI")!;
 FinishAPIButton.onclick = () => {
     shutdown_api(false).then(data => {
         console.log(data);
+    });
+}
+
+function update_api_status() {
+    check_api_status().then(data => {
+        current_api_status = data.status;
+        StatusLabel.innerText = "API Status: " + APIStatus[current_api_status];
+        
+        if (current_api_status == APIStatus.LISTENING) {
+            StartListeningButton.classList.add("hidden")
+            StopListeningButton.classList.remove("hidden")
+        } else {
+            StartListeningButton.classList.remove("hidden")
+            StopListeningButton.classList.add("hidden")
+        }
     });
 }

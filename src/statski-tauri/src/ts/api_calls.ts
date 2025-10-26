@@ -2,6 +2,14 @@ const API_URL = "http://127.0.0.1:5000/";
 
 export {check_api_status, shutdown_api, fetch_chunk_data, start_listening, stop_listening, save_file};
 
+export enum APIStatus {
+    DOWN = 0,
+    SETTING_UP = 1,
+    READY = 2,
+    LISTENING = 3,
+    FINISHING = 4
+}
+
 export interface BaseResponse {
     message: string;
     body: ChunkBody | null;
@@ -19,7 +27,7 @@ interface ChunkData {
     chunks: [Float32Array];
 }
 
-async function check_api_status() {
+async function check_api_status(): Promise<BaseResponse> {
     const response: BaseResponse = await fetch(API_URL, {
         method: 'GET',
         headers: {}
@@ -34,7 +42,7 @@ async function check_api_status() {
     return response;
 }
 
-async function shutdown_api(save_before_shutting_down: boolean = true) {
+async function shutdown_api(save_before_shutting_down: boolean = true): Promise<BaseResponse> {
     // TODO: Fix CORS Policy
     const response: BaseResponse = await fetch(API_URL + "shutdown/" + save_before_shutting_down, {
         method: 'GET',
@@ -65,7 +73,7 @@ async function start_listening() {
     });
 }
 
-async function stop_listening() {
+async function stop_listening(): Promise<BaseResponse> {
     const response: BaseResponse = await fetch(API_URL + "stop-listening", {
         method: 'GET',
         headers: {
@@ -82,7 +90,7 @@ async function stop_listening() {
     return response;
 }
 
-async function fetch_chunk_data(chunk_property: string) {
+async function fetch_chunk_data(chunk_property: string): Promise<BaseResponse> {
     const response: BaseResponse = await fetch(API_URL + "get-data/" + chunk_property, {
         method: 'GET',
         headers: {
@@ -99,7 +107,7 @@ async function fetch_chunk_data(chunk_property: string) {
     return response;
 }
 
-async function save_file(file_path: string) {
+async function save_file(file_path: string): Promise<BaseResponse> {
     // TODO: Fix CORS Policy
     const response: BaseResponse = await fetch(API_URL + "save-file-data/" + file_path, {
         method: 'GET',

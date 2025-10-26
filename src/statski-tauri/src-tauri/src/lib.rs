@@ -38,16 +38,14 @@ pub fn run() {
                 .sidecar("FlaskAPI")
                 .expect("Failed to create side car");
         
-            let app_data_dir = app.path().app_data_dir().ok().take();
-            let mut app_data_path = app_data_dir.unwrap();
-            let _error = create_dir(app_data_path.clone());
-
-            let path_str = app_data_path.as_mut_os_str().to_os_string().into_string().unwrap();
+            let app_data_dir = app.path().app_data_dir().unwrap();
+            let app_data_path = app_data_dir.as_path().to_str().unwrap();
+            let _error = create_dir(app_data_path);
 
             let (mut rx, child) = sidecar
                 .args([
-                    "--config ", &format!("{}\\config.cfg", &path_str),
-                    "--save ", &format!("{}\\saves", &path_str)
+                    "--config", &format!("{}\\config.cfg", &app_data_path),
+                    "--save", &format!("{}\\saves", &app_data_path)
                 ])
                 .spawn()
                 .expect("Failed to initialize sidecar");

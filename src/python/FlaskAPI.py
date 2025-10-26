@@ -189,11 +189,11 @@ for idx, argument in enumerate(sys.argv):
     previous_argument = argument
 
 
-config_data: ConfigData = ConfigData(cfg_path, not os.path.exists(cfg_path))
+config_data: ConfigData = ConfigData(cfg_path, save_path, not os.path.exists(cfg_path))
 if config_data.SavePath != save_path:
     config_data.SavePath = save_path
 
-
+# print(cfg_path, save_path)
 if not os.path.isdir(str(config_data.SavePath)):
     os.mkdir(str(config_data.SavePath))
 
