@@ -15,6 +15,11 @@ const Overlay = document.getElementById("Overlay")!;
 const ControlPanel = document.getElementById("ControlPanel")!;
 const StatusLabel = document.getElementById("StatusLabel")!;
 
+let maximum: number = 0;
+let current_data: Map<string, number> = new Map();
+let normalized_data: Map<string, number> = new Map();
+
+let show_only_recent: boolean = false;
 let chunk_property = "times_hovered";
 let grid_size = [16, 16];
 let pixel_size = 4;
@@ -42,7 +47,21 @@ setInterval(() => {
             grid_size = data.body.grid_size
             update_canva_size();
 
-            parse_chunk_data(data.body, Canvas, pixel_size * ratio);
+            let new_data: Map<string, number> = data.body.chunk_data.chunks;
+            new_data.forEach((value: number, key: string) => {
+                current_data.set(key, value);
+                maximum = Math.max(value, maximum);
+            });
+
+            current_data.forEach((value: number, key: string) => {
+                normalized_data.set(key, value / maximum);
+            });
+
+            if (show_only_recent) {
+                parse_chunk_data(new_data, Canvas, pixel_size * ratio);
+                return;
+            }
+            parse_chunk_data(normalized_data, Canvas, pixel_size * ratio);
         }
     });
 }, FETCH_INTERVAL);
@@ -61,20 +80,34 @@ StartListeningButton.onclick = () => {
         update_api_status();
 
         fetch_chunk_data(chunk_property, false).then(data => {
-        if (data.body) {
-            grid_size = data.body.grid_size
-            update_canva_size();
-
-            parse_chunk_data(data.body, Canvas, pixel_size * ratio);
-        }
-    });
+            if (data.body) {
+                grid_size = data.body.grid_size
+                update_canva_size();
+    
+                current_data = data.body.chunk_data.chunks;
+                maximum = data.body.chunk_data.maximum;
+                // normalized_data.clear();
+                
+                current_data.forEach((value: number, key: string) => {
+                    normalized_data.set(key, value / maximum);
+                });
+                parse_chunk_data(normalized_data, Canvas, pixel_size * ratio);
+            }
+        });
     })
 }
 const StopListeningButton = document.getElementById("StopListening")!;
 StopListeningButton.onclick = () => {
     stop_listening().then(data => {
         if (data.body) {
-            parse_chunk_data(data.body, Canvas, pixel_size * ratio)
+            current_data = data.body.chunk_data.chunks;
+            maximum = data.body.chunk_data.maximum;
+            normalized_data.clear();
+            
+            current_data.forEach((value: number, key: string) => {
+                normalized_data.set(key, value / maximum);
+            });
+            parse_chunk_data(normalized_data, Canvas, pixel_size * ratio);
         }
         FetchCheckbox.checked = false;
     })

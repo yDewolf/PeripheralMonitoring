@@ -40,7 +40,8 @@ export interface ConfigBody {
 
 interface ChunkData {
     property: string;
-    chunks: Object;
+    chunks: Map<string, number>;
+    maximum: number;
 }
 
 async function check_api_status(): Promise<BaseResponse> {
@@ -117,7 +118,9 @@ async function stop_listening(): Promise<ChunkResponse> {
     ).catch(error => {
         console.error('Error fetching data:', error); 
     });
-
+    
+    let chunks: Map<string, number> = new Map(Object.entries(response.body.chunk_data.chunks));
+    response.body.chunk_data.chunks = chunks;
     return response;
 }
 
@@ -135,6 +138,8 @@ async function fetch_chunk_data(chunk_property: string, recent_only: boolean): P
         console.error('Error fetching data:', error);
     });
     
+    let chunks: Map<string, number> = new Map(Object.entries(response.body.chunk_data.chunks));
+    response.body.chunk_data.chunks = chunks;
     return response;
 }
 
