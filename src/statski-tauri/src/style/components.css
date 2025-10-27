@@ -1,6 +1,7 @@
 body {
     margin: 0;
     color: var(--font-color);
+    /* font-family: 'Roboto'; */
 }
 
 .content {
@@ -85,8 +86,13 @@ body {
     flex-direction: column;
     
     align-items: center;
+
     ul {
         margin: 10px auto;
+    }
+
+    .bottom {
+        margin-top: auto;
     }
 }
 
@@ -118,7 +124,6 @@ button:hover, input[type="button"]:hover {
 
 .control-button {
     margin: 0 10px;
-    
 }
 
 .control-button:hover {
@@ -127,6 +132,10 @@ button:hover, input[type="button"]:hover {
 
 .settings-button {
     margin-top: auto;
+}
+
+.close-button {
+    position: absolute;
 }
 
 hr {
@@ -156,11 +165,21 @@ a:hover {
     color: var(--font-color-hover);
 }
 
+.behind-overlay {
+    filter: blur(2px);
+}
+
+.overlay-holder {
+    display: flex;
+    flex-direction: column;
+}
+
 .overlay {
     width: 100%;
     height: calc(100% - var(--titlebar-height));
-    background-color: rgb(from var(--color-darker-gray) r g b / 0.75);
-    
+    background-color: rgba(0, 0, 0, 0.8);
+    filter: blur();
+
     display: flex;
     align-items: center;
     
@@ -181,6 +200,9 @@ a:hover {
 }
 
 .settings-menu {
+    display: flex;
+    flex-direction: column;
+
     h2 {
         text-align: center;
         margin: 0;

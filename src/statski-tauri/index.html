@@ -53,19 +53,11 @@
         </div>
     </div>
     <div class="titlebar-spacer"></div>
-    <div class="content">
-        <div class="left-panel" id="left-panel">
-            <ul class="left-panel-options">
-                <li class="left-panel-option"><a href="?">Some Option</a></li>
-                <li class="left-panel-option"><a href="?">Some Option</a></li>
-            </ul>
-            <hr style="background-color: var(--color-clear-white); border-radius: var(--default-border-radius);">
-            <button class="settings-button" id="Settings">Settings</button>
-        </div>
+    <div class="overlay-holder">
         <div class="overlay hidden" id="Overlay">
-            <div class="floating-menu settings-menu">
-                <form id="SettingsForm">
-                    <input type="button" id="CloseSettings" value="X">
+            <div class="floating-menu">
+                <form class="settings-menu" id="SettingsForm">
+                    <input type="button" class="close-button" id="CloseSettings" value="X">
                     <!-- <button id="CloseSettings" type="">X</button> -->
                     <h2>Settings</h2>
                     <ul id="ConfigFields">
@@ -77,6 +69,18 @@
                     <button class="confirm" type="button" id="UpdateConfig">Save</button>
                 </form>
             </div>
+        </div>
+    </div>
+    <div class="content" id="PageContent">
+        <div class="left-panel" id="left-panel">
+            <div class="">
+                <ul class="left-panel-options">
+                    <li class="left-panel-option"><a href="?">Some Option</a></li>
+                    <li class="left-panel-option"><a href="?">Some Option</a></li>
+                </ul>
+                <hr style="background-color: var(--color-clear-white); border-radius: var(--default-border-radius);">
+            </div>
+            <button class="settings-button" id="Settings">Settings</button>
         </div>
         <div class="main-content" id="main-content">
             <div class="navbar" id="navbar">

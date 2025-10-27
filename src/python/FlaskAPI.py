@@ -5,6 +5,8 @@ import time
 from threading import Thread
 import flask
 from flask import Flask, Response, request
+# from flask import logging
+# from flask.logging import default_handler
 from flask_cors import CORS
 from enum import Enum
 
@@ -222,7 +224,7 @@ if config_data.SavePath != save_path:
 if not os.path.isdir(str(config_data.SavePath)):
     os.mkdir(str(config_data.SavePath))
 
-print(f"API Version: 0.2")
+print(f"API Version: 0.2.2")
 api = FlaskAPI(__name__, config_data)
 CORS(api)
 api.run(port=config_data.Port)

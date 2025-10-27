@@ -44,10 +44,10 @@
     background: var(--color-gray);
     color: var(--color-main);
   }
+}
 
-  * {
-      font-family: "PixelFont";
-  }
+* {
+    font-family: "PixelFont";
 }
 
 /* .titlebar {

@@ -10,6 +10,7 @@ const FetchCheckbox = document.getElementById("FetchCheckbox")! as HTMLInputElem
 const StatisticHolder = document.getElementById("main-content")!;
 const LeftPanel = document.getElementById("left-panel")!;
 const Navbar = document.getElementById("navbar")!;
+const PageContent = document.getElementById("PageContent")!;
 const Overlay = document.getElementById("Overlay")!;
 const ControlPanel = document.getElementById("ControlPanel")!;
 const StatusLabel = document.getElementById("StatusLabel")!;
@@ -98,7 +99,7 @@ SettingsButton.onclick = () => {
 
 const CloseSettingsButton = document.getElementById("CloseSettings")!;
 CloseSettingsButton.onclick = () => {
-    Overlay.style.display = "none";
+    hide_settings_menu();
 }
 
 const SettingsForm = document.getElementById("SettingsForm")! as HTMLFormElement;
@@ -110,9 +111,15 @@ UpdateConfigButton.onclick = () => {
     update_config(data);
 }
 
+function hide_settings_menu() {
+    PageContent.classList.remove("behind-overlay");
+    Overlay.classList.add("hidden");
+}
+
 function show_settings_menu(config: Object) {
     generate_settings_menu(config);
-    Overlay.style.display = "inherit";
+    Overlay.classList.remove("hidden");
+    PageContent.classList.add("behind-overlay");
 }
 
 function generate_settings_menu(config: Object) {
