@@ -10,6 +10,7 @@ const FetchCheckbox = document.getElementById("FetchCheckbox")! as HTMLInputElem
 const StatisticHolder = document.getElementById("main-content")!;
 const LeftPanel = document.getElementById("left-panel")!;
 const Navbar = document.getElementById("navbar")!;
+const ControlPanel = document.getElementById("ControlPanel")!;
 const StatusLabel = document.getElementById("StatusLabel")!;
 
 let chunk_property = "times_hovered";
@@ -17,26 +18,9 @@ let grid_size = [16, 16];
 let pixel_size = 4;
 let ratio = 1;
 
-window.addEventListener('resize', function() {
-    let grid_to_pixel = [grid_size[0] * pixel_size, grid_size[1] * pixel_size];
-    // TODO: Fix this
-    let free_width = this.window.innerWidth - LeftPanel.clientWidth;
-    let free_height = StatisticHolder.clientHeight - Navbar.clientHeight;
-    if (grid_to_pixel[0] >= free_width) {
-        ratio = free_width / grid_to_pixel[0];
-    } else {
-        ratio = grid_to_pixel[0] / free_width;
-    }
-
-    if (grid_to_pixel[1] >= free_height) {
-        ratio = Math.min(ratio, free_height / grid_to_pixel[1]);
-    }
-
-    Canvas.style.scale = ratio.toString();
-
-    Canvas.setAttribute("width", (grid_size[0] * pixel_size * ratio).toString());
-    Canvas.setAttribute("height", (grid_size[1] * pixel_size * ratio).toString());
-});
+// window.addEventListener('resize', function() {
+//     update_canva_size();
+// });
 
 setInterval(() => {
     if (current_api_status != APIStatus.LISTENING) {
@@ -49,7 +33,10 @@ setInterval(() => {
     
     fetch_chunk_data(chunk_property).then(data => {
         if (data.body) {
-            grid_size = data.body.grid_size 
+            if (grid_size != data.body.grid_size) {
+                grid_size = data.body.grid_size 
+                update_canva_size();
+            }
             parse_chunk_data(data.body, Canvas, pixel_size * ratio);
         }
     });
@@ -104,4 +91,22 @@ function update_api_status() {
             StopListeningButton.classList.add("hidden")
         }
     });
+}
+
+function update_canva_size() {
+    let grid_to_pixel = [grid_size[0] * pixel_size, grid_size[1] * pixel_size];
+    // TODO: Fix this
+    let margin = 5;
+    let free_width = window.innerWidth - LeftPanel.clientWidth - margin;
+    let free_height = StatisticHolder.clientHeight - Navbar.clientHeight - ControlPanel.clientHeight - margin;
+
+    let target_width_ratio = free_width / grid_to_pixel[0];
+    let target_height_ratio = free_height / grid_to_pixel[1];
+    if (grid_to_pixel[1] * target_width_ratio <= free_height) {
+        ratio = target_width_ratio;
+    }
+    
+    if (grid_to_pixel[0] * target_height_ratio <= free_width) {
+        ratio = target_height_ratio;
+    }
 }

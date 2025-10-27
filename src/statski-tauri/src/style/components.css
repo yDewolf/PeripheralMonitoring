@@ -19,6 +19,9 @@ body {
 
 .left-panel {
     width: 200px;
+    min-width: 200px;
+    min-height: fit-content;
+
     background-color: var(--color-dark-gray);
 }
 
