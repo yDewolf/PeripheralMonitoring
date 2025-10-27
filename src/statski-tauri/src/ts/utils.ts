@@ -15,9 +15,6 @@ function parse_chunk_data(chunk_data_body: ChunkBody, canvas: any, pixel_size: n
     let context = canvas.getContext("2d");
     let gradient = SEISMIC_GRADIENT;
 
-    canvas.setAttribute("width", chunk_data_body.grid_size[0] * pixel_size);
-    canvas.setAttribute("height", chunk_data_body.grid_size[1] * pixel_size);
-    
     context.fillStyle = 'rgba('+gradient[0][0] + ',' + gradient[0][1] + ',' + gradient[0][2] +','+ 1 + ')';
     context.fillRect(0, 0, canvas.width, canvas.height);
 

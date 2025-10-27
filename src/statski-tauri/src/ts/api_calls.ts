@@ -1,6 +1,6 @@
 const API_URL = "http://127.0.0.1:5000/";
 
-export {check_api_status, shutdown_api, fetch_chunk_data, start_listening, stop_listening, save_file};
+export {check_api_status, shutdown_api, fetch_chunk_data, start_listening, stop_listening, save_file, update_config, get_config};
 
 export enum APIStatus {
     DOWN = 0,
@@ -12,7 +12,19 @@ export enum APIStatus {
 
 export interface BaseResponse {
     message: string;
-    body: ChunkBody | null;
+    body: ChunkBody | ConfigBody;
+    status: number;
+}
+
+export interface ChunkResponse {
+    message: string;
+    body: ChunkBody;
+    status: number;
+}
+
+export interface ConfigResponse {
+    message: string;
+    body: ConfigBody;
     status: number;
 }
 
@@ -20,6 +32,10 @@ export interface ChunkBody {
     chunk_data: ChunkData;
     grid_size: [number, number];
     chunk_size: number;
+}
+
+export interface ConfigBody {
+    config: Object
 }
 
 interface ChunkData {
@@ -45,7 +61,7 @@ async function check_api_status(): Promise<BaseResponse> {
 async function shutdown_api(save_before_shutting_down: boolean = true): Promise<BaseResponse> {
     // TODO: Fix CORS Policy
     const response: BaseResponse = await fetch(API_URL + "shutdown/" + save_before_shutting_down, {
-        method: 'GET',
+        method: 'POST',
         headers: {
         },
     }).then(
@@ -61,7 +77,7 @@ async function shutdown_api(save_before_shutting_down: boolean = true): Promise<
 
 async function start_listening() {
     await fetch(API_URL + "listen", {
-        method: 'GET',
+        method: 'POST',
         headers: {
         }
     }).then(
@@ -73,15 +89,15 @@ async function start_listening() {
     });
 }
 
-async function stop_listening(): Promise<BaseResponse> {
-    const response: BaseResponse = await fetch(API_URL + "stop-listening", {
-        method: 'GET',
+async function stop_listening(): Promise<ChunkResponse> {
+    const response: ChunkResponse = await fetch(API_URL + "stop-listening", {
+        method: 'POST',
         headers: {
             
         }
     }).then(
         response => {
-            return response.json()
+            return response.json();
         }
     ).catch(error => {
         console.error('Error fetching data:', error); 
@@ -90,8 +106,8 @@ async function stop_listening(): Promise<BaseResponse> {
     return response;
 }
 
-async function fetch_chunk_data(chunk_property: string): Promise<BaseResponse> {
-    const response: BaseResponse = await fetch(API_URL + "get-data/" + chunk_property, {
+async function fetch_chunk_data(chunk_property: string): Promise<ChunkResponse> {
+    const response: ChunkResponse = await fetch(API_URL + "get-data/" + chunk_property, {
         method: 'GET',
         headers: {
 
@@ -108,11 +124,73 @@ async function fetch_chunk_data(chunk_property: string): Promise<BaseResponse> {
 }
 
 async function save_file(file_path: string): Promise<BaseResponse> {
-    // TODO: Fix CORS Policy
-    const response: BaseResponse = await fetch(API_URL + "save-file-data/" + file_path, {
+    const response: BaseResponse = await fetch(API_URL + "save-file-data/", {
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            "file_path": file_path
+        })
+    }).then(
+        response => {
+            return response.json()
+        }
+    ).catch(error => {
+        console.error('Error fetching data:', error);
+    });
+
+    return response;
+}
+
+async function get_config(): Promise<ConfigResponse> {
+    const response: ConfigResponse = await fetch(API_URL + "get-config/", {
         method: 'GET',
         headers: {
+            
         },
+    }).then(
+        response => {
+            return response.json()
+        }
+    ).catch(error => {
+        console.error('Error fetching data:', error);
+    });
+
+    return response;
+}
+
+async function update_config(config_data: Object): Promise<ConfigResponse> {
+    console.log(config_data);
+    for (let key in config_data) {
+        // @ts-expect-error    
+        switch (config_data[key].toLowerCase()) {
+            case "on":
+                // @ts-expect-error    
+                config_data[key] = true;
+                break;
+            case "off":
+                // @ts-expect-error    
+                config_data[key] = false;
+                break;
+            case "true": 
+                // @ts-expect-error    
+                config_data[key] = true;
+                break;
+            case "false":
+                // @ts-expect-error    
+                config_data[key] = false;
+                break;
+        }
+    }
+    console.log(JSON.stringify({"config_data": config_data}));
+    
+    const response: ConfigResponse = await fetch(API_URL + "update-config/", {
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({"config_data": config_data})
     }).then(
         response => {
             return response.json()

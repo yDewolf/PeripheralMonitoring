@@ -3,9 +3,6 @@ body {
     color: var(--font-color);
 }
 
-.hidden {
-    display: none;
-}
 
 .content {
     display: flex;
@@ -91,7 +88,7 @@ body {
     align-items: center;
 }
 
-.control-button, button {
+.control-button, button, input[type="button"] {
     cursor: pointer;
     transition: 150ms;
     border: none;
@@ -112,7 +109,7 @@ body {
     background-color: var(--color-ok-green);
 }
 
-button:hover {
+button:hover, input[type="button"]:hover {
     background-color: var(--background-color-hover);
     color: var(--font-color-hover)
 }
@@ -155,4 +152,59 @@ a:hover {
     transition: 150ms;
     background-color: var(--background-color-hover);
     color: var(--font-color-hover);
+}
+
+.overlay {
+    width: 100%;
+    height: calc(100% - var(--titlebar-height));
+    background-color: rgb(from var(--color-darker-gray) r g b / 0.75);
+    
+    display: flex;
+    align-items: center;
+    
+    position: absolute;
+    z-index: 1;
+}
+
+.floating-menu {
+    width: fit-content;
+    height: fit-content;
+    min-width: 200px;
+    
+    padding: 15px;
+    background-color: var(--background-color);
+    border-radius: 10px;
+
+    margin: auto;
+}
+
+.settings-menu {
+    h2 {
+        text-align: center;
+        margin: 0;
+    }
+    ul {
+        padding: 0;
+        list-style: none;
+    }
+}
+
+.config-row {
+    margin: 5px auto;
+    display: flex;
+    label {
+        margin-right: auto;
+    }
+
+    input {
+        margin-left: 10px;
+        height: 20px;
+        border-radius: 8px;
+        padding: 2px;
+        border: none;
+    }
+}
+
+.hidden {
+    display: none;
 }

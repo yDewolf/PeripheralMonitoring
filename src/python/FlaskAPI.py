@@ -5,6 +5,7 @@ import time
 from threading import Thread
 import flask
 from flask import Flask, Response, request
+from flask_cors import CORS
 from enum import Enum
 
 from Controllers.PeripheralController import PeripheralController
@@ -33,12 +34,13 @@ class FlaskAPI(Flask):
         self.config_data = config_data
         
         self.add_url_rule("/", view_func=self.index)
-        self.add_url_rule("/shutdown/<save_before_shutting_down>", view_func=self.shutdown)
-        self.add_url_rule("/listen", view_func=self.listen)
-        self.add_url_rule("/stop-listening", view_func=self.stop_listening)
+        self.add_url_rule("/shutdown/<save_before_shutting_down>", view_func=self.shutdown, methods=["POST"])
+        self.add_url_rule("/listen", view_func=self.listen, methods=["POST"])
+        self.add_url_rule("/stop-listening", view_func=self.stop_listening, methods=["POST"])
         self.add_url_rule("/get-data/<property>", view_func=self.get_data)
-        self.add_url_rule("/save-file-data/<file_path>", view_func=self.save_file_data)
-        self.add_url_rule("/save-file-data/", view_func=self.save_file_data)
+        self.add_url_rule("/save-file-data/", view_func=self.save_file_data, methods=["POST"])
+        self.add_url_rule("/get-config/", view_func=self.get_config)
+        self.add_url_rule("/update-config/", view_func=self.update_configs, methods=["POST"])
         self.setup_controller()
         
         self.teardown_request(self.terminate_process)
@@ -80,6 +82,7 @@ class FlaskAPI(Flask):
     def kill_function(self):
         time.sleep(1)
         os.kill(os.getpid(), signal.SIGINT)
+
 
     def index(self):
         return self.generate_response("Waiting...")
@@ -127,13 +130,9 @@ class FlaskAPI(Flask):
         }
         return self.generate_response("Fetched Data", body=body_data)
 
-    def save_file_data(self, file_path: str = ""):
-        # TODO: Fix CORS Policy
-        # request_data: dict = request.get_json()
-        # file_path = request_data.get("file_path", self.config_data.SavePath)
-        
-        if file_path == "":
-            file_path = self.config_data.SavePath
+    def save_file_data(self):
+        request_data: dict = request.get_json()
+        file_path = request_data.get("file_path", self.config_data.SavePath)
         
         # Prevent it from trying to save without even having data
         try:
@@ -148,6 +147,14 @@ class FlaskAPI(Flask):
         finally:
             return self.generate_response(f"Didn't have any data to save")
 
+    def get_config(self):
+        return self.generate_response(f"Config file path:", {"path": self.config_data._path, "config": self.config_data.to_dict()})
+
+    def update_configs(self):
+        data: dict = request.get_json()
+        self.config_data.read_dict(data.get("config_data", {}), True)
+
+        return self.generate_response("Updated config successfully!", {"new_config": self.config_data.to_dict()})
 
 
     def generate_response(self, message: str, body: dict = {}) -> Response:
@@ -190,6 +197,7 @@ for idx, argument in enumerate(sys.argv):
 
 
 config_data: ConfigData = ConfigData(cfg_path, save_path, not os.path.exists(cfg_path))
+config_data.to_dict()
 if config_data.SavePath != save_path:
     config_data.SavePath = save_path
 
@@ -197,8 +205,9 @@ if config_data.SavePath != save_path:
 if not os.path.isdir(str(config_data.SavePath)):
     os.mkdir(str(config_data.SavePath))
 
-print(f"API Version: 0.1")
+print(f"API Version: 0.2")
 api = FlaskAPI(__name__, config_data)
+CORS(api)
 api.run(port=config_data.Port)
 
 print("Finished API Process")
