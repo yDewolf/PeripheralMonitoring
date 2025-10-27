@@ -20,16 +20,17 @@ function parse_chunk_data(chunk_data_body: ChunkBody, canvas: any, pixel_size: n
 
     let chunk_data = chunk_data_body.chunk_data.chunks;
 
-    for (const row_key in chunk_data) {
-        for (let idx = 0; idx < chunk_data[row_key].length; idx++) {
-            let value = chunk_data[row_key][idx];
-            if (value == 0) {
-                continue;
-            }
-            let color_rgb = interpolate_between_gradient(gradient, value);
-            let color = 'rgba('+color_rgb[0] + ',' + color_rgb[1] + ',' + color_rgb[2] +','+ 1 + ')';
-            drawDot(context, idx, row_key, color, pixel_size);
+    for (const key in chunk_data) {
+        const split = key.split(",");
+        const x = Number(split[0]);
+        const y = Number(split[1]);
+        let value = Number(chunk_data[key as keyof Object]);
+        if (value == undefined) {
+            continue;
         }
+        let color_rgb = interpolate_between_gradient(gradient, value);
+        let color = 'rgba('+color_rgb[0] + ',' + color_rgb[1] + ',' + color_rgb[2] +','+ 1 + ')';
+        drawDot(context, x, y, color, pixel_size);
     }
 }
 

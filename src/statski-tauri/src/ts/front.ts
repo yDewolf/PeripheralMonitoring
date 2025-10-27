@@ -37,7 +37,7 @@ setInterval(() => {
         return;
     }
     
-    fetch_chunk_data(chunk_property).then(data => {
+    fetch_chunk_data(chunk_property, true).then(data => {
         if (data.body) {
             grid_size = data.body.grid_size
             update_canva_size();
@@ -59,6 +59,15 @@ StartListeningButton.onclick = () => {
     start_listening().then(() => {
         FetchCheckbox.checked = true;
         update_api_status();
+
+        fetch_chunk_data(chunk_property, false).then(data => {
+        if (data.body) {
+            grid_size = data.body.grid_size
+            update_canva_size();
+
+            parse_chunk_data(data.body, Canvas, pixel_size * ratio);
+        }
+    });
     })
 }
 const StopListeningButton = document.getElementById("StopListening")!;

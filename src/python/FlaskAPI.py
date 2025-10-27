@@ -26,6 +26,8 @@ class APIStatus(Enum):
 
 class FlaskAPI(Flask):
     config_data: ConfigData
+    
+
     controller: PeripheralController
     listener: GeneralListener
 
@@ -40,7 +42,7 @@ class FlaskAPI(Flask):
         self.add_url_rule("/restart", view_func=self.restart, methods=["POST"])
         self.add_url_rule("/listen", view_func=self.listen, methods=["POST"])
         self.add_url_rule("/stop-listening", view_func=self.stop_listening, methods=["POST"])
-        self.add_url_rule("/get-data/<property>", view_func=self.get_data)
+        self.add_url_rule("/get-data/<property>/<recent>", view_func=self.get_data)
         self.add_url_rule("/save-file-data/", view_func=self.save_file_data, methods=["POST"])
         self.add_url_rule("/get-config/", view_func=self.get_config)
         self.add_url_rule("/update-config/", view_func=self.update_configs, methods=["POST"])
@@ -135,15 +137,20 @@ class FlaskAPI(Flask):
         self.listener.stop()
         self.status = APIStatus.READY
         body_data = {
-            "chunk_data": HmpUtils.chunk_data_to_dict(self.controller),
+            "chunk_data": HmpUtils.chunk_data_to_dict(self.controller.chunk_controller.chunks),
             "grid_size": [self.controller.chunk_controller.grid_size.x, self.controller.chunk_controller.grid_size.y], 
             "chunk_size": self.controller.chunk_controller.chunk_size, 
         }
         return self.generate_response("Stopped listening to inputs", body_data)
 
-    def get_data(self, property: str = "times_hovered"):
+    def get_data(self, property: str = "times_hovered", recent: bool = False):
+        chunk_data = HmpUtils.chunk_data_to_dict(self.controller.chunk_controller.chunks, property)
+        if recent:
+            chunk_data = HmpUtils.chunk_data_to_dict_from_pos(self.controller.chunk_controller.chunks, self.controller.last_changed, property)
+            self.controller.clear_changed()
+
         body_data = {
-            "chunk_data": HmpUtils.chunk_data_to_dict(self.controller, property),
+            "chunk_data": chunk_data,
             "grid_size": [self.controller.chunk_controller.grid_size.x, self.controller.chunk_controller.grid_size.y], 
             "chunk_size": self.controller.chunk_controller.chunk_size, 
         }

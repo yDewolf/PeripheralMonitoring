@@ -40,7 +40,7 @@ export interface ConfigBody {
 
 interface ChunkData {
     property: string;
-    chunks: [Float32Array];
+    chunks: Object;
 }
 
 async function check_api_status(): Promise<BaseResponse> {
@@ -121,8 +121,8 @@ async function stop_listening(): Promise<ChunkResponse> {
     return response;
 }
 
-async function fetch_chunk_data(chunk_property: string): Promise<ChunkResponse> {
-    const response: ChunkResponse = await fetch(API_URL + "get-data/" + chunk_property, {
+async function fetch_chunk_data(chunk_property: string, recent_only: boolean): Promise<ChunkResponse> {
+    const response: ChunkResponse = await fetch(API_URL + "get-data/" + chunk_property + "/" + recent_only, {
         method: 'GET',
         headers: {
 

@@ -7,6 +7,7 @@ from pynput.mouse import Events as MouseEvents
 
 from Listeners.data.KeyDataManager import KeyDataManager
 from Listeners.data.MouseButtonStats import MouseButtonStats
+from utils.Chunk.Chunk import Vector2i
 from utils.EventParsing.MouseEventParser import MouseEventParser
 from utils.Chunk.ScreenChunk import ScreenChunk
 from utils.EventParsing.KeyboardEventParser import KeyboardEventParser
@@ -16,6 +17,7 @@ from Listeners.data.KeyboardKeyStats import KeyboardKeyStats
 
 class PeripheralController(Controller):
     debug: bool = False
+    last_changed: list[Vector2i]
 
     # Metadata
     tags: list[str] = []
@@ -30,6 +32,7 @@ class PeripheralController(Controller):
 
     def __init__(self, chunk_controller: ScreenChunkController, key_data_manager: KeyDataManager | None = None, debug_mode: bool = False, tags: list[str] = [], idle_to_afk_threshold: int = 5000) -> None:
         super().__init__()
+        self.last_changed = []
         self.debug = debug_mode
         self.tags = tags
         self.chunk_controller = chunk_controller
@@ -122,6 +125,8 @@ class PeripheralController(Controller):
             print(f"ERROR: Current chunk is None on Mouse Event | Pos: ({x}, {y})")
             return
 
+        self.mark_as_changed(self.current_chunk)
+
         button_stats: MouseButtonStats | None = None 
         chunk_button_stats: MouseButtonStats | None = None
         if type(event) is MouseEvents.Click:
@@ -165,3 +170,14 @@ class PeripheralController(Controller):
             
             case _:
                 print(f"ERROR: Event Type not handled... | type: {type}")
+
+    # TODO: Split this to multiple attribute change based lists
+    # Bem simples, só para testar a performance
+    def mark_as_changed(self, chunk: ScreenChunk):
+        if self.last_changed.__contains__(chunk.position):
+            return
+
+        self.last_changed.append(chunk.position)
+    
+    def clear_changed(self):
+        self.last_changed.clear()
