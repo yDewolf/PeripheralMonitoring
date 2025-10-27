@@ -1,4 +1,4 @@
-import time
+# import time
 from Controllers.Controller import Controller
 from Enums.EventTypes import EventTypes
 
@@ -11,7 +11,7 @@ from utils.EventParsing.MouseEventParser import MouseEventParser
 from utils.Chunk.ScreenChunk import ScreenChunk
 from utils.EventParsing.KeyboardEventParser import KeyboardEventParser
 from utils.Chunk.ScreenChunkController import ScreenChunkController
-from utils.Chunk.Chunk import Chunk
+# from utils.Chunk.Chunk import Chunk
 from Listeners.data.KeyboardKeyStats import KeyboardKeyStats
 
 class PeripheralController(Controller):
@@ -106,7 +106,13 @@ class PeripheralController(Controller):
 
 
     def parse_mouse_event(self, event_type: EventTypes, event: MouseEvents.Click):
-        x = min(max(event.x // self.chunk_controller.chunk_size, 0), self.chunk_controller.grid_size.x - 1)
+        if event.x < self.chunk_controller.x_bounds[0]:
+            return
+
+        if event.x > self.chunk_controller.x_bounds[1]:
+            return
+
+        x = min(max((event.x - self.chunk_controller.x_bounds[0]) // self.chunk_controller.chunk_size, 0), self.chunk_controller.grid_size.x - 1)
         y = min(max(event.y // self.chunk_controller.chunk_size, 0), self.chunk_controller.grid_size.y - 1)
         self.current_chunk = self.chunk_controller.getChunkAt(
             x, y

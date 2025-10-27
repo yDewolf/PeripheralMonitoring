@@ -7,16 +7,26 @@ import screeninfo
 class ScreenChunkController(ChunkHolder):
     chunk_size: int = 32
 
+    x_bounds: tuple[int, int] = (0, 0)
+
     start_listen_time: float
 
-    def __init__(self, chunk_size: int, chunk_index: dict[str, ScreenChunk] = {}):
+    def __init__(self, chunk_size: int, chunk_index: dict[str, ScreenChunk] = {}, target_monitor: int = -1):
         self.chunk_size = chunk_size
         width: int = 0
 
         max_height: int = 0
-        for monitor in screeninfo.get_monitors():
+        for idx, monitor in enumerate(screeninfo.get_monitors()):
+            if target_monitor != idx and target_monitor != -1:
+                continue
+            else:
+                self.x_bounds = (monitor.x, monitor.width)
+            
             max_height = max(max_height, monitor.height)
             width += monitor.width
+        
+        if target_monitor == -1:
+            self.x_bounds = (0, width)
         
         self.grid_size = Vector2i(
             round(width / self.chunk_size),

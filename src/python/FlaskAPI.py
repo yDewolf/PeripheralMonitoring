@@ -94,7 +94,10 @@ class FlaskAPI(Flask):
         if bool(self.config_data.RelativePath):
             SAVE_PATH = os.path.join(os.path.dirname(__file__), SAVE_PATH)
 
-        chunk_controller: ScreenChunkController = ScreenChunkController(int(self.config_data.ChunkSize))
+        chunk_controller: ScreenChunkController = ScreenChunkController(
+            int(self.config_data.ChunkSize),
+            target_monitor=int(self.config_data.ActiveMonitors)
+        )
         self.controller = PeripheralController(
             chunk_controller,
             debug_mode=bool(config_data.DebugMode),
