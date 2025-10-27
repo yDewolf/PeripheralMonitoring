@@ -1,6 +1,6 @@
 body {
     margin: 0;
-    color: var(--color-clear-white);
+    color: var(--font-color);
 }
 
 .hidden {
@@ -19,6 +19,9 @@ body {
 
 .left-panel {
     width: 200px;
+    min-width: 200px;
+    min-height: fit-content;
+
     background-color: var(--color-dark-gray);
 }
 
@@ -28,7 +31,7 @@ body {
 
 .main-content {
     width: 100%;
-    background-color: var(--color-clear-black);
+    background-color: var(--main-content-background);
     
     justify-content: space-between;
 }
@@ -89,26 +92,29 @@ body {
 }
 
 .control-button, button {
+    cursor: pointer;
     transition: 150ms;
     border: none;
     border-radius: var(--default-border-radius);
-    background-color: var(--color-clear-white);
-    
+    background-color: var(--background-color);
+    color: var(--font-color);
+
     padding: 10px;
 }
 
 .cancel {
     background-color: var(--color-nono-red);
-    color: var(--color-clear-white);
+    color: var(--font-color);
 }
 
 .confirm {
+    color: var(--font-color-hover);
     background-color: var(--color-ok-green);
 }
 
 button:hover {
-    background-color: var(--color-gray);
-    color: var(--color-clear-white)
+    background-color: var(--background-color-hover);
+    color: var(--font-color-hover)
 }
 
 .control-button {
@@ -130,7 +136,7 @@ hr {
     padding: 0;
     margin: 0;
 
-    background-color: var(--color-gray);
+    background-color: var(--background-color);
     border: none;
 }
 
@@ -138,15 +144,15 @@ a {
     text-align: center;
     text-decoration: none;
 
-    background-color: var(--color-gray);
+    background-color: var(--background-color);
     border-radius: var(--default-border-radius);
-    color: var(--color-clear-white);
+    color: var(--font-color);
 
     padding: 7px 12px;
 }
 
 a:hover {
     transition: 150ms;
-    background-color: var(--color-clear-white);
-    color: var(--color-gray);
+    background-color: var(--background-color-hover);
+    color: var(--font-color-hover);
 }

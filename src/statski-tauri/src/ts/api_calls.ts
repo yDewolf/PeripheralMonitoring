@@ -1,0 +1,125 @@
+const API_URL = "http://127.0.0.1:5000/";
+
+export {check_api_status, shutdown_api, fetch_chunk_data, start_listening, stop_listening, save_file};
+
+export enum APIStatus {
+    DOWN = 0,
+    SETTING_UP = 1,
+    READY = 2,
+    LISTENING = 3,
+    FINISHING = 4
+}
+
+export interface BaseResponse {
+    message: string;
+    body: ChunkBody | null;
+    status: number;
+}
+
+export interface ChunkBody {
+    chunk_data: ChunkData;
+    grid_size: [number, number];
+    chunk_size: number;
+}
+
+interface ChunkData {
+    property: string;
+    chunks: [Float32Array];
+}
+
+async function check_api_status(): Promise<BaseResponse> {
+    const response: BaseResponse = await fetch(API_URL, {
+        method: 'GET',
+        headers: {}
+    }).then(
+        response => {
+            return response.json()
+        }
+    ).catch(error => {
+        console.error('Error fetching data:', error); 
+    });
+
+    return response;
+}
+
+async function shutdown_api(save_before_shutting_down: boolean = true): Promise<BaseResponse> {
+    // TODO: Fix CORS Policy
+    const response: BaseResponse = await fetch(API_URL + "shutdown/" + save_before_shutting_down, {
+        method: 'GET',
+        headers: {
+        },
+    }).then(
+    response => {
+        return response.json()
+    }
+    ).then().catch(error => {
+        console.error('Error fetching data:', error); 
+    });
+
+    return response;
+}
+
+async function start_listening() {
+    await fetch(API_URL + "listen", {
+        method: 'GET',
+        headers: {
+        }
+    }).then(
+    response => {
+        return response.json()
+    }
+    ).then().catch(error => {
+        console.error('Error fetching data:', error); 
+    });
+}
+
+async function stop_listening(): Promise<BaseResponse> {
+    const response: BaseResponse = await fetch(API_URL + "stop-listening", {
+        method: 'GET',
+        headers: {
+            
+        }
+    }).then(
+        response => {
+            return response.json()
+        }
+    ).catch(error => {
+        console.error('Error fetching data:', error); 
+    });
+
+    return response;
+}
+
+async function fetch_chunk_data(chunk_property: string): Promise<BaseResponse> {
+    const response: BaseResponse = await fetch(API_URL + "get-data/" + chunk_property, {
+        method: 'GET',
+        headers: {
+
+        }
+    }).then(
+        response => {
+            return response.json()
+        }
+    ).catch(error => {
+        console.error('Error fetching data:', error);
+    });
+    
+    return response;
+}
+
+async function save_file(file_path: string): Promise<BaseResponse> {
+    // TODO: Fix CORS Policy
+    const response: BaseResponse = await fetch(API_URL + "save-file-data/" + file_path, {
+        method: 'GET',
+        headers: {
+        },
+    }).then(
+        response => {
+            return response.json()
+        }
+    ).catch(error => {
+        console.error('Error fetching data:', error);
+    });
+
+    return response;
+}

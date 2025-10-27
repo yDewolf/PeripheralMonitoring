@@ -8,7 +8,51 @@
     <link rel="stylesheet" href="./src/style/components.css">
 </head>
 <body>
-    <div class="titlebar">Statski</div>
+    <div class="titlebar">
+        <div data-tauri-drag-region></div>
+        <div class="titlebar-title">
+            Statski
+        </div>
+        <div class="controls">
+            <button id="titlebar-minimize" title="minimize">
+                <!-- https://api.iconify.design/mdi:window-minimize.svg -->
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                >
+                    <path fill="currentColor" d="M19 13H5v-2h14z" />
+                </svg>
+            </button>
+            <button id="titlebar-maximize" title="maximize">
+                <!-- https://api.iconify.design/mdi:window-maximize.svg -->
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                >
+                    <path fill="currentColor" d="M4 4h16v16H4zm2 4v10h12V8z" />
+                </svg>
+            </button>
+            <button id="titlebar-close" title="close">
+                <!-- https://api.iconify.design/mdi:close.svg -->
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                    fill="currentColor"
+                    d="M13.46 12L19 17.54V19h-1.46L12 13.46L6.46 19H5v-1.46L10.54 12L5 6.46V5h1.46L12 10.54L17.54 5H19v1.46z"
+                    />
+                </svg>
+            </button>
+        </div>
+    </div>
+    <div class="titlebar-spacer"></div>
     <div class="content">
         <div class="left-panel" id="left-panel">
             <ul class="left-panel-options">
@@ -17,6 +61,7 @@
             </ul>
             <hr style="background-color: var(--color-clear-white); border-radius: var(--default-border-radius);">
             <button class="settings-button">Settings</button>
+            <button class="control-button cancel" id="FinishAPI">Finish API process</button>
         </div>
         <div class="main-content" id="main-content">
             <div class="navbar" id="navbar">
@@ -32,7 +77,7 @@
                 <canvas id="MouseHeatmap"></canvas>
             </div>
             <hr>
-            <div class="control-panel">
+            <div class="control-panel" id="ControlPanel">
                 <ul class="control-buttons">
                     <li><button class="control-button cancel hidden" id="StopListening">Stop Listening</button></li>
                     <li><button class="control-button confirm" id="StartListening">Start Listening</button></li>
@@ -44,8 +89,9 @@
             </div>
         </div>
     </div>
-    <script type="module" src="src/js/api_calls.ts"></script>
-    <script type="module" src="src/js/utils.ts"></script>
-    <script type="module" src="src/js/front.ts"></script>
+    <script type="module" src="src/main.ts"></script>
+    <script type="module" src="src/ts/api_calls.ts"></script>
+    <script type="module" src="src/ts/utils.ts"></script>
+    <script type="module" src="src/ts/front.ts"></script>
 </body>
 </html>

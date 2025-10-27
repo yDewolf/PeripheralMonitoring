@@ -2,7 +2,4 @@
 *.hmp
 */__pycache
 /src/python/build
-/src/statski-electron/statski-electron-win32-x64
-/src/python/test_env
-/src/statski-electron/statski-win32-x64
-/src/statski-electron/statski1-win32-x64
+/src/python/scripts

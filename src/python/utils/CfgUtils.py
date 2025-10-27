@@ -1,9 +1,12 @@
 import utils.FileUtils as FileUtils
-import re as regex
-import os
 
 def save_configs(data: dict[str, object], file_path: str):
-    pass
+    with open(file_path, "w+") as file:
+        file_contents: str = ""
+        for key in data:
+            file_contents += f"{key}: {data[key]}\n"
+
+        file.write(file_contents) 
 
 def load_configs(file_path: str) -> dict[str, int | float | str | bool]:
     data: dict[str, int | float | str | bool] = {}
