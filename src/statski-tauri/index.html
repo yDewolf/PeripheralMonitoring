@@ -61,7 +61,6 @@
             </ul>
             <hr style="background-color: var(--color-clear-white); border-radius: var(--default-border-radius);">
             <button class="settings-button" id="Settings">Settings</button>
-            <button class="control-button cancel" id="FinishAPI">Finish API process</button>
         </div>
         <div class="overlay hidden" id="Overlay">
             <div class="floating-menu settings-menu">
@@ -97,11 +96,15 @@
                 <ul class="control-buttons">
                     <li><button class="control-button cancel hidden" id="StopListening">Stop Listening</button></li>
                     <li><button class="control-button confirm" id="StartListening">Start Listening</button></li>
-                    <li><label for="fetching">Fetch</label><input type="checkbox" name="fetching" id="FetchCheckbox" ></li>
+                    <li><label for="FetchCheckbox">Fetch</label><input type="checkbox" id="FetchCheckbox" ></li>
                 </ul>
 
-                <button class="control-button" id="SaveFile">Save</button>
                 <label id="StatusLabel">API Status: </label>                
+                <ul class="control-buttons bottom">
+                    <li><button class="control-button" id="SaveFile">Save</button></li>
+                    <li><button class="control-button cancel" id="FinishAPI">Finish API process</button></li>
+                    <li><button class="control-button cancel" id="RestartAPI">Restart API</button></li>
+                </ul>
             </div>
         </div>
     </div>

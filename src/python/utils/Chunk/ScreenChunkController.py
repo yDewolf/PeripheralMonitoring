@@ -33,6 +33,8 @@ class ScreenChunkController(ChunkHolder):
             round(max_height / self.chunk_size)
         )
 
+        print(self.grid_size, self.x_bounds)
+
         self.setup(chunk_index)
     
     def setup(self, chunk_index: dict[str, ScreenChunk] = {}):

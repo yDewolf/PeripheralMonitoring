@@ -3,7 +3,6 @@ body {
     color: var(--font-color);
 }
 
-
 .content {
     display: flex;
     height: calc(100vh - var(--titlebar-height));
@@ -86,6 +85,9 @@ body {
     flex-direction: column;
     
     align-items: center;
+    ul {
+        margin: 10px auto;
+    }
 }
 
 .control-button, button, input[type="button"] {
@@ -207,4 +209,8 @@ a:hover {
 
 .hidden {
     display: none;
+}
+
+.bottom {
+    margin-top: auto;
 }

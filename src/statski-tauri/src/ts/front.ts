@@ -1,5 +1,5 @@
 import { parse_chunk_data } from './utils';
-import { shutdown_api, check_api_status, fetch_chunk_data, start_listening, stop_listening, save_file, get_config, update_config, APIStatus} from './api_calls';
+import { shutdown_api, check_api_status, fetch_chunk_data, start_listening, stop_listening, save_file, get_config, update_config, APIStatus, restart_api} from './api_calls';
 
 const DEFAULT_FILE_PATH = "";
 const FETCH_INTERVAL: number = 100;
@@ -82,6 +82,12 @@ FinishAPIButton.onclick = () => {
     });
 }
 
+const RestartAPIButton = document.getElementById("RestartAPI")!;
+RestartAPIButton.onclick = () => {
+    FetchCheckbox.checked = false;
+    current_api_status = APIStatus.DOWN;
+    restart_api();
+}
 
 const SettingsButton = document.getElementById("Settings")!;
 SettingsButton.onclick = () => {

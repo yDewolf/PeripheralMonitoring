@@ -35,6 +35,7 @@ class FlaskAPI(Flask):
         
         self.add_url_rule("/", view_func=self.index)
         self.add_url_rule("/shutdown/<save_before_shutting_down>", view_func=self.shutdown, methods=["POST"])
+        self.add_url_rule("/restart", view_func=self.restart, methods=["POST"])
         self.add_url_rule("/listen", view_func=self.listen, methods=["POST"])
         self.add_url_rule("/stop-listening", view_func=self.stop_listening, methods=["POST"])
         self.add_url_rule("/get-data/<property>", view_func=self.get_data)
@@ -61,7 +62,7 @@ class FlaskAPI(Flask):
         if save_before_shutting_down:
             # Prevent it from trying to save without even having data
             try:
-                start_time = self.controller.start_listen_time
+                # start_time = self.controller.start_listen_time
             
                 HmpFileUtils.save_hmp_file(self.controller, self.config_data.SavePath)
                 message += f" | Saved file to {self.config_data.SavePath}"
@@ -86,6 +87,19 @@ class FlaskAPI(Flask):
 
     def index(self):
         return self.generate_response("Waiting...")
+
+    def restart(self):
+        self.status = APIStatus.SETTING_UP
+        if self.listener.running:
+            self.listener.stop()
+
+        try:
+            HmpFileUtils.save_hmp_file(self.controller, self.config_data.SavePath)
+        except:
+            pass
+
+        self.setup_controller()
+        return self.generate_response("Restarted Successfully")
 
     def setup_controller(self):
         self.status = APIStatus.SETTING_UP
@@ -139,7 +153,7 @@ class FlaskAPI(Flask):
         
         # Prevent it from trying to save without even having data
         try:
-            start_time = self.controller.start_listen_time
+            # start_time = self.controller.start_listen_time
             HmpFileUtils.save_hmp_file(self.controller, file_path)
             print("Saved file to ", file_path)
             return self.generate_response(f"Saved HMP file to {file_path}")

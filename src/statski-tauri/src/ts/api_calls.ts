@@ -1,6 +1,6 @@
 const API_URL = "http://127.0.0.1:5000/";
 
-export {check_api_status, shutdown_api, fetch_chunk_data, start_listening, stop_listening, save_file, update_config, get_config};
+export {check_api_status, shutdown_api, fetch_chunk_data, start_listening, stop_listening, save_file, update_config, get_config, restart_api};
 
 export enum APIStatus {
     DOWN = 0,
@@ -59,8 +59,23 @@ async function check_api_status(): Promise<BaseResponse> {
 }
 
 async function shutdown_api(save_before_shutting_down: boolean = true): Promise<BaseResponse> {
-    // TODO: Fix CORS Policy
     const response: BaseResponse = await fetch(API_URL + "shutdown/" + save_before_shutting_down, {
+        method: 'POST',
+        headers: {
+        },
+    }).then(
+    response => {
+        return response.json()
+    }
+    ).then().catch(error => {
+        console.error('Error fetching data:', error); 
+    });
+
+    return response;
+}
+
+async function restart_api(): Promise<BaseResponse> {
+    const response: BaseResponse = await fetch(API_URL + "restart", {
         method: 'POST',
         headers: {
         },
