@@ -161,7 +161,6 @@ function generate_settings_menu(config: Object) {
             case 'object':
                 if (Array.isArray(value)) {
                     value_str = "value=[" + Array(value).join(",") + "]";
-                    console.log(value);
                 }
                 break;
         }

@@ -26,21 +26,17 @@ export let isMouseInside: boolean = true;
 
 setInterval(async () => {
   if (isMouseInside) {
-    console.log("skipping focused check")
     return;
   }
-  console.log("updating focused")
   isFocused = await appWindow.isFocused();
 }, 250);
 
 document.addEventListener("mouseenter", () => {
   isFocused = true;
   isMouseInside = true;
-  console.log("mouse entered")
 });
 
 document.addEventListener("mouseleave", () => {
   isFocused = false;
   isMouseInside = false;
-  console.log("mouse exit")
 });
