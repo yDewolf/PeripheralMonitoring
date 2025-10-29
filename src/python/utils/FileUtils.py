@@ -113,6 +113,9 @@ def parse_value(value_str: str) -> float | int | str | bool | list:
         formatted = formatted.removeprefix("[").removesuffix("]")
         
         value_list: list = []
+        if len(formatted) == 0:
+            return value_list
+        
         for value in formatted.split(","):
             value_list.append(parse_value(value))
         
