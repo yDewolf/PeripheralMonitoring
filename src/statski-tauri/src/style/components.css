@@ -1,10 +1,7 @@
 body {
     margin: 0;
     color: var(--font-color);
-}
-
-.hidden {
-    display: none;
+    /* font-family: 'Roboto'; */
 }
 
 .content {
@@ -89,9 +86,17 @@ body {
     flex-direction: column;
     
     align-items: center;
+
+    ul {
+        margin: 10px auto;
+    }
+
+    .bottom {
+        margin-top: auto;
+    }
 }
 
-.control-button, button {
+.control-button, button, input[type="button"] {
     cursor: pointer;
     transition: 150ms;
     border: none;
@@ -112,14 +117,13 @@ body {
     background-color: var(--color-ok-green);
 }
 
-button:hover {
+button:hover, input[type="button"]:hover {
     background-color: var(--background-color-hover);
     color: var(--font-color-hover)
 }
 
 .control-button {
     margin: 0 10px;
-    
 }
 
 .control-button:hover {
@@ -128,6 +132,10 @@ button:hover {
 
 .settings-button {
     margin-top: auto;
+}
+
+.close-button {
+    position: absolute;
 }
 
 hr {
@@ -155,4 +163,76 @@ a:hover {
     transition: 150ms;
     background-color: var(--background-color-hover);
     color: var(--font-color-hover);
+}
+
+.behind-overlay {
+    filter: blur(2px);
+}
+
+.overlay-holder {
+    display: flex;
+    flex-direction: column;
+}
+
+.overlay {
+    width: 100%;
+    height: calc(100% - var(--titlebar-height));
+    background-color: rgba(0, 0, 0, 0.8);
+    filter: blur();
+
+    display: flex;
+    align-items: center;
+    
+    position: absolute;
+    z-index: 1;
+}
+
+.floating-menu {
+    width: fit-content;
+    height: fit-content;
+    min-width: 200px;
+    
+    padding: 15px;
+    background-color: var(--background-color);
+    border-radius: 10px;
+
+    margin: auto;
+}
+
+.settings-menu {
+    display: flex;
+    flex-direction: column;
+
+    h2 {
+        text-align: center;
+        margin: 0;
+    }
+    ul {
+        padding: 0;
+        list-style: none;
+    }
+}
+
+.config-row {
+    margin: 5px auto;
+    display: flex;
+    label {
+        margin-right: auto;
+    }
+
+    input {
+        margin-left: 10px;
+        height: 20px;
+        border-radius: 8px;
+        padding: 2px;
+        border: none;
+    }
+}
+
+.hidden {
+    display: none;
+}
+
+.bottom {
+    margin-top: auto;
 }

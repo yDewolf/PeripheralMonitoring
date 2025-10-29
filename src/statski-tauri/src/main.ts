@@ -20,3 +20,23 @@ document
 document
   .getElementById('titlebar-close')
   ?.addEventListener('click', () => appWindow.close());
+
+export let isFocused: boolean = true;
+export let isMouseInside: boolean = true;
+
+setInterval(async () => {
+  if (isMouseInside) {
+    return;
+  }
+  isFocused = await appWindow.isFocused();
+}, 250);
+
+document.addEventListener("mouseenter", () => {
+  isFocused = true;
+  isMouseInside = true;
+});
+
+document.addEventListener("mouseleave", () => {
+  isFocused = false;
+  isMouseInside = false;
+});

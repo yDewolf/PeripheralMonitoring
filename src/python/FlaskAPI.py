@@ -5,10 +5,14 @@ import time
 from threading import Thread
 import flask
 from flask import Flask, Response, request
+# from flask import logging
+# from flask.logging import default_handler
+from flask_cors import CORS
 from enum import Enum
 
 from Controllers.PeripheralController import PeripheralController
 from Listeners.GeneralListener import GeneralListener
+from utils import FileUtils
 from utils.Config.Config import ConfigData
 from utils import HmpUtils
 from utils import HmpFileUtils
@@ -23,6 +27,8 @@ class APIStatus(Enum):
 
 class FlaskAPI(Flask):
     config_data: ConfigData
+    
+
     controller: PeripheralController
     listener: GeneralListener
 
@@ -33,12 +39,13 @@ class FlaskAPI(Flask):
         self.config_data = config_data
         
         self.add_url_rule("/", view_func=self.index)
-        self.add_url_rule("/shutdown/<save_before_shutting_down>", view_func=self.shutdown)
-        self.add_url_rule("/listen", view_func=self.listen)
-        self.add_url_rule("/stop-listening", view_func=self.stop_listening)
-        self.add_url_rule("/get-data/<property>", view_func=self.get_data)
-        self.add_url_rule("/save-file-data/<file_path>", view_func=self.save_file_data)
-        self.add_url_rule("/save-file-data/", view_func=self.save_file_data)
+        self.add_url_rule("/shutdown/<save_before_shutting_down>", view_func=self.shutdown, methods=["POST"])
+        self.add_url_rule("/restart", view_func=self.restart, methods=["POST"])
+        self.add_url_rule("/toggle-listen", view_func=self.toggle_listen, methods=["POST"])
+        self.add_url_rule("/get-data/<property>/<recent>", view_func=self.get_data)
+        self.add_url_rule("/save-file-data/", view_func=self.save_file_data, methods=["POST"])
+        self.add_url_rule("/get-config/", view_func=self.get_config)
+        self.add_url_rule("/update-config/", view_func=self.update_configs, methods=["POST"])
         self.setup_controller()
         
         self.teardown_request(self.terminate_process)
@@ -59,7 +66,7 @@ class FlaskAPI(Flask):
         if save_before_shutting_down:
             # Prevent it from trying to save without even having data
             try:
-                start_time = self.controller.start_listen_time
+                # start_time = self.controller.start_listen_time
             
                 HmpFileUtils.save_hmp_file(self.controller, self.config_data.SavePath)
                 message += f" | Saved file to {self.config_data.SavePath}"
@@ -81,8 +88,22 @@ class FlaskAPI(Flask):
         time.sleep(1)
         os.kill(os.getpid(), signal.SIGINT)
 
+
     def index(self):
         return self.generate_response("Waiting...")
+
+    def restart(self):
+        self.status = APIStatus.SETTING_UP
+        if self.listener.running:
+            self.listener.stop()
+
+        try:
+            HmpFileUtils.save_hmp_file(self.controller, self.config_data.SavePath)
+        except:
+            pass
+
+        self.setup_controller()
+        return self.generate_response("Restarted Successfully")
 
     def setup_controller(self):
         self.status = APIStatus.SETTING_UP
@@ -91,7 +112,10 @@ class FlaskAPI(Flask):
         if bool(self.config_data.RelativePath):
             SAVE_PATH = os.path.join(os.path.dirname(__file__), SAVE_PATH)
 
-        chunk_controller: ScreenChunkController = ScreenChunkController(int(self.config_data.ChunkSize))
+        chunk_controller: ScreenChunkController = ScreenChunkController(
+            int(self.config_data.ChunkSize),
+            target_monitors=self.config_data.ActiveMonitors
+        )
         self.controller = PeripheralController(
             chunk_controller,
             debug_mode=bool(config_data.DebugMode),
@@ -102,42 +126,43 @@ class FlaskAPI(Flask):
         self.status = APIStatus.READY
 
 
-    def listen(self):
+    def toggle_listen(self):
         listener_thread = Thread(target=self.listener.start)
-        listener_thread.start()
+        if self.status == APIStatus.LISTENING:
+            self.listener.stop()
+            self.status = APIStatus.READY
+        else:
+            listener_thread.start()
+            self.status = APIStatus.LISTENING
         
-        self.status = APIStatus.LISTENING
-        return self.generate_response("Listening to inputs...")
-
-    def stop_listening(self):
-        self.listener.stop()
-        self.status = APIStatus.READY
         body_data = {
-            "chunk_data": HmpUtils.chunk_data_to_dict(self.controller),
+            "chunk_data": HmpUtils.chunk_data_to_dict(self.controller.chunk_controller.chunks),
             "grid_size": [self.controller.chunk_controller.grid_size.x, self.controller.chunk_controller.grid_size.y], 
             "chunk_size": self.controller.chunk_controller.chunk_size, 
         }
-        return self.generate_response("Stopped listening to inputs", body_data)
+        
+        return self.generate_response("Listening to inputs..." if self.status == APIStatus.LISTENING else "Stopped listening", body_data)
 
-    def get_data(self, property: str = "times_hovered"):
+    def get_data(self, property: str = "times_hovered", recent: bool = False):
+        chunk_data = HmpUtils.chunk_data_to_dict(self.controller.chunk_controller.chunks, property)
+        if recent:
+            chunk_data = HmpUtils.chunk_data_to_dict_from_pos(self.controller.chunk_controller.chunks, self.controller.last_changed, property)
+            self.controller.clear_changed()
+
         body_data = {
-            "chunk_data": HmpUtils.chunk_data_to_dict(self.controller, property),
+            "chunk_data": chunk_data,
             "grid_size": [self.controller.chunk_controller.grid_size.x, self.controller.chunk_controller.grid_size.y], 
             "chunk_size": self.controller.chunk_controller.chunk_size, 
         }
         return self.generate_response("Fetched Data", body=body_data)
 
-    def save_file_data(self, file_path: str = ""):
-        # TODO: Fix CORS Policy
-        # request_data: dict = request.get_json()
-        # file_path = request_data.get("file_path", self.config_data.SavePath)
-        
-        if file_path == "":
-            file_path = self.config_data.SavePath
+    def save_file_data(self):
+        request_data: dict = request.get_json()
+        file_path = request_data.get("file_path", self.config_data.SavePath)
         
         # Prevent it from trying to save without even having data
         try:
-            start_time = self.controller.start_listen_time
+            # start_time = self.controller.start_listen_time
             HmpFileUtils.save_hmp_file(self.controller, file_path)
             print("Saved file to ", file_path)
             return self.generate_response(f"Saved HMP file to {file_path}")
@@ -148,6 +173,22 @@ class FlaskAPI(Flask):
         finally:
             return self.generate_response(f"Didn't have any data to save")
 
+    def get_config(self):
+        return self.generate_response(f"Config file path:", {"path": self.config_data._path, "config": self.config_data.to_dict()})
+
+    def update_configs(self):
+        data: dict = request.get_json()
+        config_json = data.get("config_data", {})
+        parsed = {}
+        for key in config_json:
+            if type(config_json[key]) is str:
+                parsed[key] = FileUtils.parse_value(config_json[key])
+                continue
+            parsed[key] = config_json[key]
+
+        self.config_data.read_dict(parsed, True)
+
+        return self.generate_response("Updated config successfully!", {"new_config": self.config_data.to_dict()})
 
 
     def generate_response(self, message: str, body: dict = {}) -> Response:
@@ -190,15 +231,16 @@ for idx, argument in enumerate(sys.argv):
 
 
 config_data: ConfigData = ConfigData(cfg_path, save_path, not os.path.exists(cfg_path))
+config_data.to_dict()
 if config_data.SavePath != save_path:
     config_data.SavePath = save_path
 
-# print(cfg_path, save_path)
 if not os.path.isdir(str(config_data.SavePath)):
     os.mkdir(str(config_data.SavePath))
 
-print(f"API Version: 0.1")
+print(f"API Version: 0.3.1")
 api = FlaskAPI(__name__, config_data)
+CORS(api)
 api.run(port=config_data.Port)
 
 print("Finished API Process")

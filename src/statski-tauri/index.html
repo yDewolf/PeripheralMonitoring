@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="./src/style/components.css">
 </head>
 <body>
-    <div class="titlebar">
+    <div class="titlebar" id="title-bar">
         <div data-tauri-drag-region></div>
         <div class="titlebar-title">
             Statski
@@ -53,15 +53,34 @@
         </div>
     </div>
     <div class="titlebar-spacer"></div>
-    <div class="content">
+    <div class="overlay-holder">
+        <div class="overlay hidden" id="Overlay">
+            <div class="floating-menu">
+                <form class="settings-menu" id="SettingsForm">
+                    <input type="button" class="close-button" id="CloseSettings" value="X">
+                    <!-- <button id="CloseSettings" type="">X</button> -->
+                    <h2>Settings</h2>
+                    <ul id="ConfigFields">
+                        <li class="config-row">
+                            <label for="something">Some Config:</label>
+                            <input type="text" name="something" id="something">
+                        </li>
+                    </ul>
+                    <button class="confirm" type="button" id="UpdateConfig">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="content" id="PageContent">
         <div class="left-panel" id="left-panel">
-            <ul class="left-panel-options">
-                <li class="left-panel-option"><a href="?">Some Option</a></li>
-                <li class="left-panel-option"><a href="?">Some Option</a></li>
-            </ul>
-            <hr style="background-color: var(--color-clear-white); border-radius: var(--default-border-radius);">
-            <button class="settings-button">Settings</button>
-            <button class="control-button cancel" id="FinishAPI">Finish API process</button>
+            <div class="">
+                <ul class="left-panel-options">
+                    <li class="left-panel-option"><a href="?">Some Option</a></li>
+                    <li class="left-panel-option"><a href="?">Some Option</a></li>
+                </ul>
+                <hr style="background-color: var(--color-clear-white); border-radius: var(--default-border-radius);">
+            </div>
+            <button class="settings-button" id="Settings">Settings</button>
         </div>
         <div class="main-content" id="main-content">
             <div class="navbar" id="navbar">
@@ -81,11 +100,15 @@
                 <ul class="control-buttons">
                     <li><button class="control-button cancel hidden" id="StopListening">Stop Listening</button></li>
                     <li><button class="control-button confirm" id="StartListening">Start Listening</button></li>
-                    <li><label for="fetching">Fetch</label><input type="checkbox" name="fetching" id="FetchCheckbox" ></li>
+                    <li><label for="FetchCheckbox">Fetch</label><input type="checkbox" id="FetchCheckbox" ></li>
                 </ul>
 
-                <button class="control-button" id="SaveFile">Save</button>
                 <label id="StatusLabel">API Status: </label>                
+                <ul class="control-buttons bottom">
+                    <li><button class="control-button" id="SaveFile">Save</button></li>
+                    <li><button class="control-button cancel" id="FinishAPI">Finish API process</button></li>
+                    <li><button class="control-button cancel" id="RestartAPI">Restart API</button></li>
+                </ul>
             </div>
         </div>
     </div>

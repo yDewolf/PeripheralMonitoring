@@ -1,5 +1,4 @@
 import { Color } from "@tauri-apps/api/webview";
-import { ChunkBody } from "./api_calls";
 
 const SEISMIC_GRADIENT = [
     [0, 0, 85],
@@ -11,29 +10,22 @@ const SEISMIC_GRADIENT = [
 
 export { parse_chunk_data };
 
-function parse_chunk_data(chunk_data_body: ChunkBody, canvas: any, pixel_size: number) {
+function parse_chunk_data(chunk_data: Map<string, number>, canvas: any, pixel_size: number) {
     let context = canvas.getContext("2d");
     let gradient = SEISMIC_GRADIENT;
-
-    canvas.setAttribute("width", chunk_data_body.grid_size[0] * pixel_size);
-    canvas.setAttribute("height", chunk_data_body.grid_size[1] * pixel_size);
     
     context.fillStyle = 'rgba('+gradient[0][0] + ',' + gradient[0][1] + ',' + gradient[0][2] +','+ 1 + ')';
     context.fillRect(0, 0, canvas.width, canvas.height);
+    
+    chunk_data.forEach((value: number, key: string) => {
+        const split = key.split(",");
+        const x = Number(split[0]);
+        const y = Number(split[1]);
 
-    let chunk_data = chunk_data_body.chunk_data.chunks;
-
-    for (const row_key in chunk_data) {
-        for (let idx = 0; idx < chunk_data[row_key].length; idx++) {
-            let value = chunk_data[row_key][idx];
-            if (value == 0) {
-                continue;
-            }
-            let color_rgb = interpolate_between_gradient(gradient, value);
-            let color = 'rgba('+color_rgb[0] + ',' + color_rgb[1] + ',' + color_rgb[2] +','+ 1 + ')';
-            drawDot(context, idx, row_key, color, pixel_size);
-        }
-    }
+        let color_rgb = interpolate_between_gradient(gradient, value);
+        let color = 'rgba('+color_rgb[0] + ',' + color_rgb[1] + ',' + color_rgb[2] +','+ 1 + ')';
+        drawDot(context, x, y, color, pixel_size);
+    });
 }
 
 function interpolate_between_gradient(gradient: any, delta: number) {

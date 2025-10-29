@@ -1,5 +1,6 @@
 import { parse_chunk_data } from './utils';
-import { shutdown_api, check_api_status, fetch_chunk_data, start_listening, stop_listening, save_file, APIStatus} from './api_calls';
+import { shutdown_api, check_api_status, fetch_chunk_data, save_file, get_config, update_config, APIStatus, restart_api, toggle_listening} from './api_calls';
+import { isFocused } from '../main';
 
 const DEFAULT_FILE_PATH = "";
 const FETCH_INTERVAL: number = 100;
@@ -10,19 +11,32 @@ const FetchCheckbox = document.getElementById("FetchCheckbox")! as HTMLInputElem
 const StatisticHolder = document.getElementById("main-content")!;
 const LeftPanel = document.getElementById("left-panel")!;
 const Navbar = document.getElementById("navbar")!;
+const PageContent = document.getElementById("PageContent")!;
+const Overlay = document.getElementById("Overlay")!;
 const ControlPanel = document.getElementById("ControlPanel")!;
 const StatusLabel = document.getElementById("StatusLabel")!;
 
+let maximum: number = 0;
+let current_data: Map<string, number> = new Map();
+let normalized_data: Map<string, number> = new Map();
+
+let show_only_recent: boolean = false;
 let chunk_property = "times_hovered";
 let grid_size = [16, 16];
 let pixel_size = 4;
 let ratio = 1;
 
-// window.addEventListener('resize', function() {
-//     update_canva_size();
-// });
+// FIXME
+// window.addEventListener("resize", function() {
+//     if (FetchCheckbox.checked) {
+//         return;
+//     }
+//     // update_canva_size();
+// })
 
-setInterval(() => {
+let fetch_count: number = 0;
+
+setInterval(async () => {
     if (current_api_status != APIStatus.LISTENING) {
         return;
     }
@@ -31,13 +45,33 @@ setInterval(() => {
         return;
     }
     
-    fetch_chunk_data(chunk_property).then(data => {
+    if (!isFocused && fetch_count <= FETCH_INTERVAL / 10) {
+        fetch_count += 1;
+        return;
+    }
+
+    fetch_count = 0;
+
+    fetch_chunk_data(chunk_property, true).then(data => {
         if (data.body) {
-            if (grid_size != data.body.grid_size) {
-                grid_size = data.body.grid_size 
-                update_canva_size();
+            grid_size = data.body.grid_size
+            update_canva_size();
+
+            let new_data: Map<string, number> = data.body.chunk_data.chunks;
+            new_data.forEach((value: number, key: string) => {
+                current_data.set(key, value);
+                maximum = Math.max(value, maximum);
+            });
+
+            current_data.forEach((value: number, key: string) => {
+                normalized_data.set(key, value / maximum);
+            });
+
+            if (show_only_recent) {
+                parse_chunk_data(new_data, Canvas, pixel_size * ratio);
+                return;
             }
-            parse_chunk_data(data.body, Canvas, pixel_size * ratio);
+            parse_chunk_data(normalized_data, Canvas, pixel_size * ratio);
         }
     });
 }, FETCH_INTERVAL);
@@ -50,21 +84,10 @@ setInterval(() => {
 }, 250);
 
 const StartListeningButton = document.getElementById("StartListening")!;
-StartListeningButton.onclick = () => {
-    start_listening().then(() => {
-        FetchCheckbox.checked = true;
-        update_api_status();
-    })
-}
+StartListeningButton.onclick = toggle_api_listening;
+    
 const StopListeningButton = document.getElementById("StopListening")!;
-StopListeningButton.onclick = () => {
-    stop_listening().then(data => {
-        if (data.body) {
-            parse_chunk_data(data.body, Canvas, pixel_size)
-        }
-        FetchCheckbox.checked = false;
-    })
-}
+StopListeningButton.onclick = toggle_api_listening;
 
 const SaveButton = document.getElementById("SaveFile")!;
 SaveButton.onclick = () => {
@@ -76,6 +99,98 @@ FinishAPIButton.onclick = () => {
     shutdown_api(false).then(data => {
         console.log(data);
     });
+}
+
+const RestartAPIButton = document.getElementById("RestartAPI")!;
+RestartAPIButton.onclick = () => {
+    FetchCheckbox.checked = false;
+    current_api_status = APIStatus.DOWN;
+    restart_api();
+}
+
+const SettingsButton = document.getElementById("Settings")!;
+SettingsButton.onclick = () => {
+    get_config().then((data) => {
+        show_settings_menu(data.body.config);
+    });
+}
+
+const CloseSettingsButton = document.getElementById("CloseSettings")!;
+CloseSettingsButton.onclick = () => {
+    hide_settings_menu();
+}
+
+const SettingsForm = document.getElementById("SettingsForm")! as HTMLFormElement;
+const UpdateConfigButton = document.getElementById("UpdateConfig")!;
+UpdateConfigButton.onclick = () => {
+    const formData = new FormData(SettingsForm);
+
+    update_config(formData);
+}
+
+function hide_settings_menu() {
+    PageContent.classList.remove("behind-overlay");
+    Overlay.classList.add("hidden");
+}
+
+function show_settings_menu(config: Object) {
+    generate_settings_menu(config);
+    Overlay.classList.remove("hidden");
+    PageContent.classList.add("behind-overlay");
+}
+
+function generate_settings_menu(config: Object) {
+    const FieldList = document.getElementById("ConfigFields")!;
+    FieldList.innerHTML = "";
+    // TODO: Change this dynamic settings generator to a predefined settings menu so each field can be personalized
+    for (let key in config) {
+        let value = config[key as keyof Object];
+        let input_type = "text";
+        let value_str = `value='${value}'`;
+        switch (typeof value) {
+            case 'boolean': 
+                input_type = "checkbox";
+                FieldList.innerHTML += `<input type='hidden' value='False' name="${key}">`;
+
+                value_str = value ? "checked" : "";
+                break;
+            case 'number':
+                input_type = "number";
+                break;
+            
+            case 'object':
+                if (Array.isArray(value)) {
+                    value_str = "value=[" + Array(value).join(",") + "]";
+                }
+                break;
+        }
+
+        let html = `
+            <li class='config-row'>
+                <label for='${key}'>${key}:</label>
+                <input type='${input_type}' name='${key}' id='${key}' ${value_str}>
+            </li>
+        `
+        FieldList.innerHTML += html;
+    }
+}
+
+function toggle_api_listening() {
+    toggle_listening().then((data) => {
+        if (data.body) {
+            current_data = data.body.chunk_data.chunks;
+            maximum = data.body.chunk_data.maximum;
+            normalized_data.clear();
+            
+            current_data.forEach((value: number, key: string) => {
+                normalized_data.set(key, value / maximum);
+            });
+            parse_chunk_data(normalized_data, Canvas, pixel_size * ratio);
+            update_canva_size();
+        }
+        FetchCheckbox.checked = current_api_status != APIStatus.LISTENING;
+        update_api_status();
+    })
 }
 
 function update_api_status() {
@@ -96,12 +211,13 @@ function update_api_status() {
 function update_canva_size() {
     let grid_to_pixel = [grid_size[0] * pixel_size, grid_size[1] * pixel_size];
     // TODO: Fix this
-    let margin = 5;
+    let margin = 10;
     let free_width = window.innerWidth - LeftPanel.clientWidth - margin;
     let free_height = StatisticHolder.clientHeight - Navbar.clientHeight - ControlPanel.clientHeight - margin;
 
     let target_width_ratio = free_width / grid_to_pixel[0];
     let target_height_ratio = free_height / grid_to_pixel[1];
+
     if (grid_to_pixel[1] * target_width_ratio <= free_height) {
         ratio = target_width_ratio;
     }
@@ -109,4 +225,7 @@ function update_canva_size() {
     if (grid_to_pixel[0] * target_height_ratio <= free_width) {
         ratio = target_height_ratio;
     }
+
+    Canvas.setAttribute("width", (grid_size[0] * pixel_size * ratio).toString());
+    Canvas.setAttribute("height", (grid_size[1] * pixel_size * ratio).toString());
 }

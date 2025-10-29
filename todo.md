@@ -4,8 +4,8 @@
     [ ] Parse events in Rust
 
 [ ] Finish the front-end...
-    [ ] API Status parsing (show status name not value)
-    [ ] Settings Menu (to update the config.cfg and other client configs)
+    [X] API Status parsing (show status name not value)
+    [X] Settings Menu (to update the config.cfg and other client configs)
     [ ] Add tags to HMP files before saving
     [ ] Search through HMP saves
     [ ] Load HMP Files

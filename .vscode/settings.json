@@ -1,3 +1,4 @@
 {
-    "rust-analyzer.linkedProjects": ["src/statski-tauri/src-tauri/Cargo.toml"]
+    "rust-analyzer.linkedProjects": ["src/statski-tauri/src-tauri/Cargo.toml"],
+    "python.analysis.extraPaths": ["src/python"]
 }
