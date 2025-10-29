@@ -40,8 +40,7 @@ class FlaskAPI(Flask):
         self.add_url_rule("/", view_func=self.index)
         self.add_url_rule("/shutdown/<save_before_shutting_down>", view_func=self.shutdown, methods=["POST"])
         self.add_url_rule("/restart", view_func=self.restart, methods=["POST"])
-        self.add_url_rule("/listen", view_func=self.listen, methods=["POST"])
-        self.add_url_rule("/stop-listening", view_func=self.stop_listening, methods=["POST"])
+        self.add_url_rule("/toggle-listen", view_func=self.toggle_listen, methods=["POST"])
         self.add_url_rule("/get-data/<property>/<recent>", view_func=self.get_data)
         self.add_url_rule("/save-file-data/", view_func=self.save_file_data, methods=["POST"])
         self.add_url_rule("/get-config/", view_func=self.get_config)
@@ -126,22 +125,22 @@ class FlaskAPI(Flask):
         self.status = APIStatus.READY
 
 
-    def listen(self):
+    def toggle_listen(self):
         listener_thread = Thread(target=self.listener.start)
-        listener_thread.start()
+        if self.status == APIStatus.LISTENING:
+            self.listener.stop()
+            self.status = APIStatus.READY
+        else:
+            listener_thread.start()
+            self.status = APIStatus.LISTENING
         
-        self.status = APIStatus.LISTENING
-        return self.generate_response("Listening to inputs...")
-
-    def stop_listening(self):
-        self.listener.stop()
-        self.status = APIStatus.READY
         body_data = {
             "chunk_data": HmpUtils.chunk_data_to_dict(self.controller.chunk_controller.chunks),
             "grid_size": [self.controller.chunk_controller.grid_size.x, self.controller.chunk_controller.grid_size.y], 
             "chunk_size": self.controller.chunk_controller.chunk_size, 
         }
-        return self.generate_response("Stopped listening to inputs", body_data)
+        
+        return self.generate_response("Listening to inputs..." if self.status == APIStatus.LISTENING else "Stopped listening", body_data)
 
     def get_data(self, property: str = "times_hovered", recent: bool = False):
         chunk_data = HmpUtils.chunk_data_to_dict(self.controller.chunk_controller.chunks, property)
@@ -231,7 +230,7 @@ if config_data.SavePath != save_path:
 if not os.path.isdir(str(config_data.SavePath)):
     os.mkdir(str(config_data.SavePath))
 
-print(f"API Version: 0.2.2")
+print(f"API Version: 0.3.0")
 api = FlaskAPI(__name__, config_data)
 CORS(api)
 api.run(port=config_data.Port)

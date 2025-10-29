@@ -1,5 +1,5 @@
 import { parse_chunk_data } from './utils';
-import { shutdown_api, check_api_status, fetch_chunk_data, start_listening, stop_listening, save_file, get_config, update_config, APIStatus, restart_api} from './api_calls';
+import { shutdown_api, check_api_status, fetch_chunk_data, save_file, get_config, update_config, APIStatus, restart_api, toggle_listening} from './api_calls';
 
 const DEFAULT_FILE_PATH = "";
 const FETCH_INTERVAL: number = 100;
@@ -74,44 +74,10 @@ setInterval(() => {
 }, 250);
 
 const StartListeningButton = document.getElementById("StartListening")!;
-StartListeningButton.onclick = () => {
-    start_listening().then(() => {
-        FetchCheckbox.checked = true;
-        update_api_status();
-
-        fetch_chunk_data(chunk_property, false).then(data => {
-            if (data.body) {
-                grid_size = data.body.grid_size
-                update_canva_size();
+StartListeningButton.onclick = toggle_api_listening;
     
-                current_data = data.body.chunk_data.chunks;
-                maximum = data.body.chunk_data.maximum;
-                // normalized_data.clear();
-                
-                current_data.forEach((value: number, key: string) => {
-                    normalized_data.set(key, value / maximum);
-                });
-                parse_chunk_data(normalized_data, Canvas, pixel_size * ratio);
-            }
-        });
-    })
-}
 const StopListeningButton = document.getElementById("StopListening")!;
-StopListeningButton.onclick = () => {
-    stop_listening().then(data => {
-        if (data.body) {
-            current_data = data.body.chunk_data.chunks;
-            maximum = data.body.chunk_data.maximum;
-            normalized_data.clear();
-            
-            current_data.forEach((value: number, key: string) => {
-                normalized_data.set(key, value / maximum);
-            });
-            parse_chunk_data(normalized_data, Canvas, pixel_size * ratio);
-        }
-        FetchCheckbox.checked = false;
-    })
-}
+StopListeningButton.onclick = toggle_api_listening;
 
 const SaveButton = document.getElementById("SaveFile")!;
 SaveButton.onclick = () => {
@@ -194,6 +160,23 @@ function generate_settings_menu(config: Object) {
         `
         FieldList.innerHTML += html;
     }
+}
+
+function toggle_api_listening() {
+    toggle_listening().then((data) => {
+        if (data.body) {
+            current_data = data.body.chunk_data.chunks;
+            maximum = data.body.chunk_data.maximum;
+            normalized_data.clear();
+            
+            current_data.forEach((value: number, key: string) => {
+                normalized_data.set(key, value / maximum);
+            });
+            parse_chunk_data(normalized_data, Canvas, pixel_size * ratio);
+        }
+        FetchCheckbox.checked = true;
+        update_api_status();
+    })
 }
 
 function update_api_status() {

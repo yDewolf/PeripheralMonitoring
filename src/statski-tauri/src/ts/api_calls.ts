@@ -1,6 +1,6 @@
 const API_URL = "http://127.0.0.1:5000/";
 
-export {check_api_status, shutdown_api, fetch_chunk_data, start_listening, stop_listening, save_file, update_config, get_config, restart_api};
+export {check_api_status, shutdown_api, fetch_chunk_data, toggle_listening, save_file, update_config, get_config, restart_api};
 
 export enum APIStatus {
     DOWN = 0,
@@ -91,22 +91,8 @@ async function restart_api(): Promise<BaseResponse> {
     return response;
 }
 
-async function start_listening() {
-    await fetch(API_URL + "listen", {
-        method: 'POST',
-        headers: {
-        }
-    }).then(
-    response => {
-        return response.json()
-    }
-    ).then().catch(error => {
-        console.error('Error fetching data:', error); 
-    });
-}
-
-async function stop_listening(): Promise<ChunkResponse> {
-    const response: ChunkResponse = await fetch(API_URL + "stop-listening", {
+async function toggle_listening() {
+    const response: ChunkResponse = await fetch(API_URL + "toggle-listen", {
         method: 'POST',
         headers: {
             
