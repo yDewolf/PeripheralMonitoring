@@ -1,5 +1,6 @@
 import { parse_chunk_data } from './utils';
 import { shutdown_api, check_api_status, fetch_chunk_data, save_file, get_config, update_config, APIStatus, restart_api, toggle_listening} from './api_calls';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 
 const DEFAULT_FILE_PATH = "";
 const FETCH_INTERVAL: number = 100;
@@ -33,7 +34,8 @@ let ratio = 1;
 //     // update_canva_size();
 // })
 
-setInterval(() => {
+let fetch_count: number = 0;
+setInterval(async () => {
     if (current_api_status != APIStatus.LISTENING) {
         return;
     }
@@ -42,6 +44,14 @@ setInterval(() => {
         return;
     }
     
+    let isFocused = await getCurrentWindow().isFocused();
+    if (!isFocused && fetch_count <= FETCH_INTERVAL / 10) {
+        fetch_count += 1;
+        return;
+    }
+
+    fetch_count = 0;
+
     fetch_chunk_data(chunk_property, true).then(data => {
         if (data.body) {
             grid_size = data.body.grid_size
@@ -173,8 +183,9 @@ function toggle_api_listening() {
                 normalized_data.set(key, value / maximum);
             });
             parse_chunk_data(normalized_data, Canvas, pixel_size * ratio);
+            update_canva_size();
         }
-        FetchCheckbox.checked = true;
+        FetchCheckbox.checked = current_api_status != APIStatus.LISTENING;
         update_api_status();
     })
 }
@@ -197,12 +208,13 @@ function update_api_status() {
 function update_canva_size() {
     let grid_to_pixel = [grid_size[0] * pixel_size, grid_size[1] * pixel_size];
     // TODO: Fix this
-    let margin = 5;
+    let margin = 10;
     let free_width = window.innerWidth - LeftPanel.clientWidth - margin;
     let free_height = StatisticHolder.clientHeight - Navbar.clientHeight - ControlPanel.clientHeight - margin;
 
     let target_width_ratio = free_width / grid_to_pixel[0];
     let target_height_ratio = free_height / grid_to_pixel[1];
+
     if (grid_to_pixel[1] * target_width_ratio <= free_height) {
         ratio = target_width_ratio;
     }
