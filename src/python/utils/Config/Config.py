@@ -7,7 +7,7 @@ class ConfigData:
     ChunkSize: int = 16
     IdleToAfkThreshold: int = 5000
     Port: int = 5000
-    ActiveMonitors: int = -1
+    ActiveMonitors: list[int] = []
 
     DebugMode: bool = False
     FastStart: bool = True
@@ -51,7 +51,7 @@ class ConfigData:
         for key in data.keys():
             if not hasattr(self, key):
                 continue
-                
+            
             self.__setattr__(key, data[key])
         
         if save:
@@ -69,5 +69,6 @@ class ConfigData:
     def load_from_file(self, file_path: str = ""):
         self._path = file_path
         data = CfgUtils.load_configs(file_path)
+
         self.read_dict(data, False)
     

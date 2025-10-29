@@ -12,6 +12,7 @@ from enum import Enum
 
 from Controllers.PeripheralController import PeripheralController
 from Listeners.GeneralListener import GeneralListener
+from utils import FileUtils
 from utils.Config.Config import ConfigData
 from utils import HmpUtils
 from utils import HmpFileUtils
@@ -113,7 +114,7 @@ class FlaskAPI(Flask):
 
         chunk_controller: ScreenChunkController = ScreenChunkController(
             int(self.config_data.ChunkSize),
-            target_monitor=int(self.config_data.ActiveMonitors)
+            target_monitors=self.config_data.ActiveMonitors
         )
         self.controller = PeripheralController(
             chunk_controller,
@@ -177,7 +178,15 @@ class FlaskAPI(Flask):
 
     def update_configs(self):
         data: dict = request.get_json()
-        self.config_data.read_dict(data.get("config_data", {}), True)
+        config_json = data.get("config_data", {})
+        parsed = {}
+        for key in config_json:
+            if type(config_json[key]) is str:
+                parsed[key] = FileUtils.parse_value(config_json[key])
+                continue
+            parsed[key] = config_json[key]
+
+        self.config_data.read_dict(parsed, True)
 
         return self.generate_response("Updated config successfully!", {"new_config": self.config_data.to_dict()})
 
@@ -226,11 +235,10 @@ config_data.to_dict()
 if config_data.SavePath != save_path:
     config_data.SavePath = save_path
 
-# print(cfg_path, save_path)
 if not os.path.isdir(str(config_data.SavePath)):
     os.mkdir(str(config_data.SavePath))
 
-print(f"API Version: 0.3.0")
+print(f"API Version: 0.3.1")
 api = FlaskAPI(__name__, config_data)
 CORS(api)
 api.run(port=config_data.Port)

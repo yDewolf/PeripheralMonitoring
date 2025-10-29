@@ -115,8 +115,14 @@ class PeripheralController(Controller):
         if event.x - self.chunk_controller.x_bounds[0] > self.chunk_controller.x_bounds[1]:
             return
 
+        if event.y < self.chunk_controller.y_bounds[0]:
+            return
+        
+        if event.y - self.chunk_controller.y_bounds[0] > self.chunk_controller.y_bounds[1]:
+            return
+
         x = min(max((event.x - self.chunk_controller.x_bounds[0]) // self.chunk_controller.chunk_size, 0), self.chunk_controller.grid_size.x - 1)
-        y = min(max(event.y // self.chunk_controller.chunk_size, 0), self.chunk_controller.grid_size.y - 1)
+        y = min(max((event.y - self.chunk_controller.y_bounds[0]) // self.chunk_controller.chunk_size, 0), self.chunk_controller.grid_size.y - 1)
         self.current_chunk = self.chunk_controller.getChunkAt(
             x, y
         )

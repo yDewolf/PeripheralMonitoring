@@ -8,8 +8,8 @@ def save_configs(data: dict[str, object], file_path: str):
 
         file.write(file_contents) 
 
-def load_configs(file_path: str) -> dict[str, int | float | str | bool]:
-    data: dict[str, int | float | str | bool] = {}
+def load_configs(file_path: str) -> dict[str, int | float | str | bool | list]:
+    data: dict[str, int | float | str | bool | list] = {}
     lines: list[str] = FileUtils.get_file_content(file_path)
     for line in lines:
         if line == "":

@@ -21,11 +21,11 @@ print('\x1b[3;37;44m' + "".center(30) + '\x1b[0m')
 print('\x1b[3;37;44m' + "Peripheral Monitor".center(30) + '\x1b[0m')
 print('\x1b[3;37;44m' + "".center(30) + '\x1b[0m')
 
-chunk_controller = ScreenChunkController(int(config_data["ChunkSize"]))
+chunk_controller = ScreenChunkController(int(config_data["ChunkSize"])) # type: ignore
 controller: PeripheralController = PeripheralController(
     chunk_controller, 
     debug_mode=bool(config_data["DebugMode"]),
-    idle_to_afk_threshold=int(config_data["IdleToAfkThreshold"])
+    idle_to_afk_threshold=int(config_data["IdleToAfkThreshold"]) # type: ignore
 )
 
 listener = GeneralListener(controller)

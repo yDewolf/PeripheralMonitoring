@@ -103,12 +103,20 @@ def set_obj_properties(obj: object, csv_line: str, header: str = "") -> dict:
 def clean_string(string: str) -> str:
     return string.replace("\t", "").replace("\n", "").replace(" ", "").removesuffix(";")
 
-def parse_value(value_str: str) -> float | int | str | bool:
+def parse_value(value_str: str) -> float | int | str | bool | list:
     formatted = clean_string(value_str)
     if is_valid_int(formatted):
         return int(formatted)
     elif is_valid_float(formatted):
         return float(formatted)
+    elif formatted.startswith("[") and formatted.endswith("]"):
+        formatted = formatted.removeprefix("[").removesuffix("]")
+        
+        value_list: list = []
+        for value in formatted.split(","):
+            value_list.append(parse_value(value))
+        
+        return value_list
 
     elif formatted.lower() == "false":
         return False

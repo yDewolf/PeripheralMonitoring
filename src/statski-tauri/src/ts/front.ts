@@ -1,6 +1,6 @@
 import { parse_chunk_data } from './utils';
 import { shutdown_api, check_api_status, fetch_chunk_data, save_file, get_config, update_config, APIStatus, restart_api, toggle_listening} from './api_calls';
-import { getCurrentWindow } from '@tauri-apps/api/window';
+import { isFocused } from '../main';
 
 const DEFAULT_FILE_PATH = "";
 const FETCH_INTERVAL: number = 100;
@@ -35,6 +35,7 @@ let ratio = 1;
 // })
 
 let fetch_count: number = 0;
+
 setInterval(async () => {
     if (current_api_status != APIStatus.LISTENING) {
         return;
@@ -44,7 +45,6 @@ setInterval(async () => {
         return;
     }
     
-    let isFocused = await getCurrentWindow().isFocused();
     if (!isFocused && fetch_count <= FETCH_INTERVAL / 10) {
         fetch_count += 1;
         return;
@@ -124,9 +124,8 @@ const SettingsForm = document.getElementById("SettingsForm")! as HTMLFormElement
 const UpdateConfigButton = document.getElementById("UpdateConfig")!;
 UpdateConfigButton.onclick = () => {
     const formData = new FormData(SettingsForm);
-    let data = Object.fromEntries(formData);
 
-    update_config(data);
+    update_config(formData);
 }
 
 function hide_settings_menu() {
@@ -143,23 +142,28 @@ function show_settings_menu(config: Object) {
 function generate_settings_menu(config: Object) {
     const FieldList = document.getElementById("ConfigFields")!;
     FieldList.innerHTML = "";
+    // TODO: Change this dynamic settings generator to a predefined settings menu so each field can be personalized
     for (let key in config) {
-        let value = config[key as keyof Object].toString();
+        let value = config[key as keyof Object];
         let input_type = "text";
         let value_str = `value='${value}'`;
-        if (value.toLowerCase() == "true" || value.toLowerCase() == "false") {
-            input_type = "checkbox";
-            FieldList.innerHTML += `<input type='hidden' value='False' name="${key}">`
+        switch (typeof value) {
+            case 'boolean': 
+                input_type = "checkbox";
+                FieldList.innerHTML += `<input type='hidden' value='False' name="${key}">`;
 
-            value_str = "";
-            if (value.toLowerCase() == "true") {
-                value_str = "checked";
-            }
-        } else {
-            let number = Number(value.trim());
-            if (!isNaN(number) && isFinite(number)) {
+                value_str = value ? "checked" : "";
+                break;
+            case 'number':
                 input_type = "number";
-            }
+                break;
+            
+            case 'object':
+                if (Array.isArray(value)) {
+                    value_str = "value=[" + Array(value).join(",") + "]";
+                    console.log(value);
+                }
+                break;
         }
 
         let html = `

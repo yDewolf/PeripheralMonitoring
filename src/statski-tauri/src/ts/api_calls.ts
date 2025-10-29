@@ -166,37 +166,35 @@ async function get_config(): Promise<ConfigResponse> {
     return response;
 }
 
-async function update_config(config_data: Object): Promise<ConfigResponse> {
-    console.log(config_data);
-    for (let key in config_data) {
-        // @ts-expect-error    
-        switch (config_data[key].toLowerCase()) {
-            case "on":
-                // @ts-expect-error    
-                config_data[key] = true;
-                break;
-            case "off":
-                // @ts-expect-error    
-                config_data[key] = false;
-                break;
-            case "true": 
-                // @ts-expect-error    
-                config_data[key] = true;
-                break;
-            case "false":
-                // @ts-expect-error    
-                config_data[key] = false;
-                break;
+async function update_config(form_data: FormData): Promise<ConfigResponse> {
+    let config_data: Map<string, any> = new Map();
+    form_data.forEach((value: any, key: string) => {
+        config_data.set(key, value);
+        if (typeof value == 'string') {
+            switch (value.toString().toLowerCase()) {
+                case "on":
+                    config_data.set(key, true);
+                    break;
+                case "off":
+                    config_data.set(key, false);
+                    break;
+                case "true": 
+                    config_data.set(key, true);
+                    break;
+                case "false":
+                    config_data.set(key, false);
+                    break;
+            }
+            return;
         }
-    }
-    console.log(JSON.stringify({"config_data": config_data}));
-    
+    })
+
     const response: ConfigResponse = await fetch(API_URL + "update-config/", {
         method: 'POST',
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({"config_data": config_data})
+        body: JSON.stringify({"config_data": Object.fromEntries(config_data.entries())})
     }).then(
         response => {
             return response.json()
