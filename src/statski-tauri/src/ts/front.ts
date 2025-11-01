@@ -1,5 +1,5 @@
 import { parse_chunk_data } from './utils';
-import { shutdown_api, check_api_status, fetch_chunk_data, save_file, get_config, update_config, APIStatus, restart_api, toggle_listening} from './api_calls';
+import { shutdown_api, check_api_status, fetch_chunk_data, save_file, get_config, update_config, APIStatus, restart_api, toggle_listening, ChunkResponse} from './api_calls';
 import { isFocused } from '../main';
 
 const DEFAULT_FILE_PATH = "";
@@ -16,6 +16,7 @@ const Overlay = document.getElementById("Overlay")!;
 const ControlPanel = document.getElementById("ControlPanel")!;
 const StatusLabel = document.getElementById("StatusLabel")!;
 
+
 let maximum: number = 0;
 let current_data: Map<string, number> = new Map();
 let normalized_data: Map<string, number> = new Map();
@@ -26,17 +27,9 @@ let grid_size = [16, 16];
 let pixel_size = 4;
 let ratio = 1;
 
-// FIXME
-// window.addEventListener("resize", function() {
-//     if (FetchCheckbox.checked) {
-//         return;
-//     }
-//     // update_canva_size();
-// })
-
 let fetch_count: number = 0;
-
-setInterval(async () => {
+let fetch_controller: AbortController
+setInterval(() => {
     if (current_api_status != APIStatus.LISTENING) {
         return;
     }
@@ -51,22 +44,21 @@ setInterval(async () => {
     }
 
     fetch_count = 0;
-
-    fetch_chunk_data(chunk_property, true).then(data => {
+    fetch_chunk_data(chunk_property, true, fetch_controller.signal).then(data => {
         if (data.body) {
             grid_size = data.body.grid_size
             update_canva_size();
-
+            
             let new_data: Map<string, number> = data.body.chunk_data.chunks;
             new_data.forEach((value: number, key: string) => {
                 current_data.set(key, value);
                 maximum = Math.max(value, maximum);
             });
-
+            
             current_data.forEach((value: number, key: string) => {
                 normalized_data.set(key, value / maximum);
             });
-
+            
             if (show_only_recent) {
                 parse_chunk_data(new_data, Canvas, pixel_size * ratio);
                 return;
@@ -80,7 +72,7 @@ setInterval(() => {
     if (FetchCheckbox.checked) {
         return;
     }
-    update_api_status();
+    fetch_api_status();
 }, 250);
 
 const StartListeningButton = document.getElementById("StartListening")!;
@@ -176,8 +168,14 @@ function generate_settings_menu(config: Object) {
 }
 
 function toggle_api_listening() {
+    if (current_api_status == APIStatus.LISTENING && fetch_controller) {
+        fetch_controller.abort();
+    }
+    fetch_controller = new AbortController();
+
     toggle_listening().then((data) => {
         if (data.body) {
+            
             current_data = data.body.chunk_data.chunks;
             maximum = data.body.chunk_data.maximum;
             normalized_data.clear();
@@ -189,23 +187,28 @@ function toggle_api_listening() {
             update_canva_size();
         }
         FetchCheckbox.checked = current_api_status != APIStatus.LISTENING;
+        current_api_status = data.status;
+
         update_api_status();
     })
 }
 
-function update_api_status() {
+function fetch_api_status() {
     check_api_status().then(data => {
         current_api_status = data.status;
-        StatusLabel.innerText = "API Status: " + APIStatus[current_api_status];
-        
-        if (current_api_status == APIStatus.LISTENING) {
-            StartListeningButton.classList.add("hidden")
-            StopListeningButton.classList.remove("hidden")
-        } else {
-            StartListeningButton.classList.remove("hidden")
-            StopListeningButton.classList.add("hidden")
-        }
     });
+    update_api_status();
+}
+
+function update_api_status() {
+    StatusLabel.innerText = "API Status: " + APIStatus[current_api_status];
+    if (current_api_status == APIStatus.LISTENING) {
+        StartListeningButton.classList.add("hidden")
+        StopListeningButton.classList.remove("hidden")
+    } else {
+        StartListeningButton.classList.remove("hidden")
+        StopListeningButton.classList.add("hidden")
+    }
 }
 
 function update_canva_size() {

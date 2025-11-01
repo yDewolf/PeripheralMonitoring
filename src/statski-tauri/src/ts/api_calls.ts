@@ -110,12 +110,11 @@ async function toggle_listening() {
     return response;
 }
 
-async function fetch_chunk_data(chunk_property: string, recent_only: boolean): Promise<ChunkResponse> {
+async function fetch_chunk_data(chunk_property: string, recent_only: boolean, controller_signal: AbortSignal): Promise<ChunkResponse> {
     const response: ChunkResponse = await fetch(API_URL + "get-data/" + chunk_property + "/" + recent_only, {
         method: 'GET',
-        headers: {
-
-        }
+        headers: {},
+        signal: controller_signal
     }).then(
         response => {
             return response.json()
