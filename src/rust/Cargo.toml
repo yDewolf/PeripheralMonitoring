@@ -4,4 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+display-info = "0.5.7"
 yioe = { path = "../../yioe" }

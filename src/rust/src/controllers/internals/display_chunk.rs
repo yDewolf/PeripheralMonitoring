@@ -1,3 +1,8 @@
+use core::panic;
+use std::cmp::{max, min};
+
+use display_info::DisplayInfo;
+
 use crate::controllers::internals::base::chunk_holder::{ChunkGrid, ChunkGridLike, StoresChunkGrid};
 use crate::controllers::internals::base::chunks::{ChunkDataType, ChunkLike, ChunkProperty};
 use crate::utils::custom_types::{Vector2i};
@@ -50,33 +55,56 @@ impl ChunkLike<DisplayChunkData> for DisplayChunk {
 }
 
 
-pub struct DisplayChunkController {
-    chunk_grid: ChunkGrid<DisplayChunk>
+pub struct DisplayChunkHolder {
+    chunk_grid: ChunkGrid<DisplayChunk>,
+    bounds: [Vector2i; 2]
 }
 
-impl StoresChunkGrid<DisplayChunk, DisplayChunkData> for DisplayChunkController {
+impl DisplayChunkHolder {
+    pub fn new_from_display(display_list: Vec<usize>, chunk_size: u16) -> Self {
+        let mut bounds: [Option<i32>; 4] = [None, Some(0), None, Some(0)];
+        let info = DisplayInfo::all().unwrap_or_else(|err| {panic!("Couldn't get display infos | {err}");});
+        for (idx, display) in info.iter().enumerate() {
+            if !display_list.is_empty() {
+                if !display_list.contains(&idx) {
+                    continue;
+                }
+            }
+            
+            bounds[0] = Some(min(bounds[0].unwrap_or(display.x), display.x));
+            bounds[1] = Some(bounds[1].unwrap_or_default() + display.width as i32);
+
+            bounds[2] = Some(min(bounds[2].unwrap_or(display.y), display.y));
+            bounds[3] = Some(max(bounds[3].unwrap_or_default(), display.height as i32));
+        }
+
+        if display_list.is_empty() {
+            bounds[0] = Some(0);
+            bounds[2] = Some(0);
+        }
+
+        println!("{:?}", bounds);
+        return Self {
+            chunk_grid: ChunkGrid::new(bounds[1].unwrap() as u16 / chunk_size, bounds[3].unwrap() as u16 / chunk_size),
+            bounds: [
+                Vector2i::new(bounds[0].unwrap_or_default() as u16, bounds[1].unwrap() as u16), 
+                Vector2i::new(bounds[2].unwrap_or_default() as u16, bounds[3].unwrap() as u16)
+            ]
+        }
+    }
+}
+
+impl StoresChunkGrid<DisplayChunk, DisplayChunkData> for DisplayChunkHolder {
     type Grid = ChunkGrid<DisplayChunk>;
     type DataType = u16;
 
     fn new(width: Self::DataType, height: Self::DataType) -> Self {
-        return Self { chunk_grid: ChunkGrid::new(width, height) };
+        return Self { chunk_grid: ChunkGrid::new(width, height), bounds: [Vector2i::new(0, width), Vector2i::new(0, height)] };
     }
 
     fn get_grid(&self) -> &Self::Grid { return &self.chunk_grid }
 
     fn get_chunk(&mut self, pos: Vector2i) -> Option<&mut DisplayChunk> {
         return self.chunk_grid.get_chunk_at_pos(pos);
-    }
-}
-
-impl DisplayChunkController {
-    pub fn new_from_display() -> Self {
-        let mut width = 0;
-        let mut height = 0;
-        // TODO set width and height using display sizes
-
-        return Self {
-            chunk_grid: ChunkGrid::new(width, height)
-        }
     }
 }
