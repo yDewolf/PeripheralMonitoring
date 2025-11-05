@@ -7,6 +7,7 @@ use crate::controllers::internals::base::chunk_holder::{ChunkGrid, ChunkGridLike
 use crate::controllers::internals::base::chunks::{ChunkDataType, ChunkLike, ChunkProperty};
 use crate::utils::custom_types::{Vector2i};
 
+#[derive(Debug)]
 pub struct DisplayChunkData {
     times_hovered: ChunkProperty,
     hover_time: ChunkProperty,
@@ -104,7 +105,7 @@ impl StoresChunkGrid<DisplayChunk, DisplayChunkData> for DisplayChunkHolder {
 
     fn get_grid(&self) -> &Self::Grid { return &self.chunk_grid }
 
-    fn get_chunk(&mut self, pos: Vector2i) -> Option<&mut DisplayChunk> {
+    fn get_chunk(&mut self, pos: &Vector2i) -> Option<&mut DisplayChunk> {
         return self.chunk_grid.get_chunk_at_pos(pos);
     }
 }

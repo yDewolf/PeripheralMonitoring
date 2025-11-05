@@ -1,3 +1,5 @@
+use std::ops::Div;
+
 pub trait Position {
     fn x(&self) -> u16;
     fn y(&self) -> u16;
@@ -15,6 +17,14 @@ impl Vector2i {
             x: x,
             y: y
         }
+    }
+}
+
+impl Div for Vector2i {
+    type Output = Vector2i;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        return Vector2i::new(self.x / rhs.x, self.y / rhs.y);
     }
 }
 

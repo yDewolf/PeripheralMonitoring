@@ -1,5 +1,6 @@
 use crate::utils::custom_types::Vector2i;
 
+#[derive(Debug)]
 pub struct ChunkProperty {
     max_value: u16,
     value: u16,

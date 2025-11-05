@@ -8,7 +8,7 @@ pub trait ChunkGridLike<ChunkType, CDataType> where ChunkType: ChunkLike<CDataTy
 
     fn new(width: Self::DataType, height: Self::DataType) -> Self;
 
-    fn get_chunk_at_pos(&mut self, pos: Vector2i) -> Option<&mut ChunkType>;
+    fn get_chunk_at_pos(&mut self, pos: &Vector2i) -> Option<&mut ChunkType>;
     fn get_chunk_at(&mut self, x: Self::DataType, y: Self::DataType) -> Option<&mut ChunkType>;
 
     fn grid_size(&self) -> &Vector2i;
@@ -39,7 +39,7 @@ impl<T, D> ChunkGridLike<T, D> for ChunkGrid<T> where T: ChunkLike<D>, D: ChunkD
         }
     }
 
-    fn get_chunk_at_pos(&mut self, pos: Vector2i) -> Option<&mut T> {
+    fn get_chunk_at_pos(&mut self, pos: &Vector2i) -> Option<&mut T> {
         return self.get_chunk_at(pos.x(), pos.y());
     }
 
@@ -65,7 +65,7 @@ pub trait StoresChunkGrid<ChunkType, CDataType> where ChunkType: ChunkLike<CData
     fn new(width: Self::DataType, height: Self::DataType) -> Self;
 
     fn get_grid(&self) -> &Self::Grid;
-    fn get_chunk(&mut self, pos: Vector2i) -> Option<&mut ChunkType>;
+    fn get_chunk(&mut self, pos: &Vector2i) -> Option<&mut ChunkType>;
 }
 
 pub struct ChunkHolder {
@@ -83,6 +83,6 @@ impl StoresChunkGrid<Chunk, ChunkData> for ChunkHolder {
     }
 
     fn get_grid(&self) -> &Self::Grid { return &self.chunk_grid; }
-    fn get_chunk(&mut self, pos: Vector2i) -> Option<&mut Chunk> { return self.chunk_grid.get_chunk_at_pos(pos) }
+    fn get_chunk(&mut self, pos: &Vector2i) -> Option<&mut Chunk> { return self.chunk_grid.get_chunk_at_pos(pos) }
 }
 
