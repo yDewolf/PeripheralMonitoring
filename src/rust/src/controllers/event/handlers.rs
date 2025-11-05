@@ -1,3 +1,4 @@
+use yioe::helpers::events::controller::EventHandler;
 use yioe::helpers::events::event::{EventLike, EventTypes};
 use yioe::helpers::keyboard::events::KeyboardEvent;
 use yioe::helpers::mouse::events::MouseEvent;
@@ -8,6 +9,17 @@ pub struct KeyboardEventHandler {
     previous_key: Option<i32>
 }
 
+impl EventHandler<KeyboardEvent> for KeyboardEventHandler {
+    fn handle(&self, event: &Box<KeyboardEvent>) {
+        let EventTypes::KeyboardEvent(event_type) = event.event_type() else { return; };
+        match event_type {
+            yioe::helpers::keyboard::events::KeyboardEventTypes::JustPressed => self.handle_key_press(event),
+            yioe::helpers::keyboard::events::KeyboardEventTypes::Released => self.handle_key_release(event),
+            _ => ()
+        }
+    }
+}
+
 impl KeyboardEventHandler {
     pub fn new() -> Self {
         return Self {
@@ -15,16 +27,11 @@ impl KeyboardEventHandler {
         }
     }
 
-    pub fn handle_event(&mut self, event: &Box<KeyboardEvent>) {
-        let EventTypes::KeyboardEvent(event_type) = event.event_type() else { return; };
-
-    }
-
-    pub fn handle_key_press(&mut self, event: &KeyboardEvent) {
+    pub fn handle_key_press(&self, event: &KeyboardEvent) {
         println!("{:?}", event.data())
     }
 
-    pub fn handle_key_release(&mut self, event: &KeyboardEvent) {
+    pub fn handle_key_release(&self, event: &KeyboardEvent) {
         println!("{:?}", event.data())
     }
 
@@ -41,6 +48,18 @@ pub struct MouseEventHandler {
     last_hovered_chunk: Option<Box<DisplayChunk>>
 }
 
+impl EventHandler<MouseEvent> for MouseEventHandler {
+    fn handle(&self, event: &Box<MouseEvent>) {
+        let EventTypes::MouseEvent(event_type) = event.event_type() else { return; };
+        match event_type {
+            yioe::helpers::mouse::events::MouseEventTypes::JustPressed => self.handle_key_press(event),
+            yioe::helpers::mouse::events::MouseEventTypes::Released => self.handle_key_release(event),
+            yioe::helpers::mouse::events::MouseEventTypes::Move => self.handle_move(event),
+            _ => ()
+        }
+    }
+}
+
 impl MouseEventHandler {
     pub fn new() -> Self {
         return Self {
@@ -48,15 +67,15 @@ impl MouseEventHandler {
         }
     }
 
-    pub fn handle_key_press(&mut self, event: &MouseEvent) {
+    pub fn handle_key_press(&self, event: &MouseEvent) {
         println!("{:?}", event.data())
     }
 
-    pub fn handle_key_release(&mut self, event: &MouseEvent) {
+    pub fn handle_key_release(&self, event: &MouseEvent) {
         println!("{:?}", event.data())
     }
 
-    pub fn handle_move(&mut self, event: &MouseEvent) {
+    pub fn handle_move(&self, event: &MouseEvent) {
         println!("{:?}", event.data())
     }
 

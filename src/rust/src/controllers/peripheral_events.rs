@@ -1,5 +1,7 @@
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
+use std::thread;
+use std::time::Duration;
 
 use yioe::helpers::events::event::EventTypes;
 use yioe::helpers::events::listener::{Listener, SendBehavior};
@@ -17,8 +19,8 @@ pub struct PeripheralEventController {
     keyboard_controller: KeyboardListenerController,
     mouse_controller: MouseListenerController,
 
-    keyboard_handler: KeyboardEventHandler,
-    mouse_handler: MouseEventHandler
+    keyboard_handler: Arc<KeyboardEventHandler>,
+    mouse_handler: Arc<MouseEventHandler>
 }
 
 impl PeripheralEventController {
@@ -27,15 +29,15 @@ impl PeripheralEventController {
         let mut ms_controller = MouseListenerController::new(MouseEventListener::new(), ms_behavior);
 
 
-        let mut keyboard_handler: KeyboardEventHandler = KeyboardEventHandler::new();
-        let mut mouse_handler: MouseEventHandler = MouseEventHandler::new();
+        let keyboard_handler: Arc<KeyboardEventHandler> = Arc::new(KeyboardEventHandler::new());
+        let mouse_handler: Arc<MouseEventHandler> = Arc::new(MouseEventHandler::new());
 
-        kb_controller.add_event_handler(Box::new(|event| {}), KeyboardEventTypes::JustPressed);
-        kb_controller.add_event_handler(Box::new(|event| {}), KeyboardEventTypes::Released);
+        kb_controller.add_event_handler(keyboard_handler.clone(), KeyboardEventTypes::JustPressed);
+        kb_controller.add_event_handler(keyboard_handler.clone(), KeyboardEventTypes::Released);
 
-        ms_controller.add_event_handler(Box::new(|event| {}), MouseEventTypes::JustPressed);
-        ms_controller.add_event_handler(Box::new(|event| {}), MouseEventTypes::Released);
-        ms_controller.add_event_handler(Box::new(|event| {}), MouseEventTypes::Move);
+        ms_controller.add_event_handler(mouse_handler.clone(), MouseEventTypes::JustPressed);
+        ms_controller.add_event_handler(mouse_handler.clone(), MouseEventTypes::Released);
+        ms_controller.add_event_handler(mouse_handler.clone(), MouseEventTypes::Move);
 
         return Self {
             keyboard_controller: kb_controller,
@@ -49,6 +51,12 @@ impl PeripheralEventController {
     pub fn start_listening(&mut self) {
         self.keyboard_controller.start_listening();
         self.mouse_controller.start_listening();
+    }
 
+    pub fn handle_events(&mut self) {
+        let run_controller: Arc<AtomicBool> = Arc::new(AtomicBool::new(true));
+
+        self.mouse_controller.handle_events(run_controller.clone(), Duration::from_millis(16));
+        self.keyboard_controller.handle_events(run_controller.clone(), Duration::from_millis(16));
     }
 }
